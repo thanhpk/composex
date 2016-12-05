@@ -1,4 +1,16 @@
 version: '2'
 includes:
-  A: 'a.yaml'
+  A: './a.yml'
   B: 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v2.0/yaml/petstore-minimal.yaml'
+
+services:  
+  nginx:
+    build: .
+    image: thanhpk/nginx:assetup_2
+
+    volumes:
+      - /var/log:/var/log
+      - /tmp/assets:/srv/assetup/assets
+
+    links:
+      - A.fpm1:fpm

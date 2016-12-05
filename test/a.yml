@@ -1,0 +1,25 @@
+version: '2.0'
+services:
+  
+
+  nginx:
+    extends:
+      file: deps/nginx/docker-compose.yml
+      service: nginx
+    ports:
+      - "2108:80"
+
+    volumes:
+      - /var/log:/var/log
+      - /tmp/assets:/srv/assetup/assets
+
+    links:
+      - fpm1:fpm
+
+  fpm1:
+    build: .
+    image: thanhpk/assetup:0.0.2
+    volumes:
+      - /tmp/assets:/srv/assetup/assets
+
+    
