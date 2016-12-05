@@ -1,6 +1,4 @@
 version: '2.0'
-includes:	
-  C: './c.yml'
 services:
   
 
@@ -18,7 +16,7 @@ services:
     links:
       - fpm1:fpm
 
-  fpm2:
+  fpm1:
     build: .
     image: thanhpk/assetup:0.0.2
     volumes:

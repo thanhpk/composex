@@ -17,15 +17,14 @@ function parse(content, cb) {
 
 	
 	async.filter(Object.keys(ymlobj.includes), function(namespace, callback) {
-		console.log(namespace);
 		async.waterfall([function(callback) {
 			if (validUrl.isUri(ymlobj.includes[namespace])) {
 				request(ymlobj.includes[namespace], function(err, response, body) {
 					parse(body, callback);
 				});
 			} else {
-				
-				process.chdir(path.dirname(destfile));
+
+
 				fs.readFile(ymlobj.includes[namespace], 'utf8', function(err, data) {
 					if (err) throw err;
 					parse(data, callback);
@@ -37,13 +36,17 @@ function parse(content, cb) {
 				return;
 			}
 			var services = {};
+			_.map(Object.keys(ymlobj.services), function(servicename) {
+				services[servicename] = ymlobj.services[servicename];
+			});
+			
 			_.map(Object.keys(childServices), function(servicename) {
 				services[`${namespace}.${servicename}`] = childServices[servicename];
 			});
 			callback(services);
 		});
 	}, function(servicesArr) {
-		console.log(servicesArr);
+		cb(servicesArr);
 	});
 }
 
@@ -54,6 +57,7 @@ if (validUrl.isUri(destfile)) {
 } else {
 	fs.readFile(destfile, 'utf8', function(err, data) {
 		if (err) throw err;
-		parse(data, function(){});
+		parse(data, function(data){console.log(data);});
 	});
 }
+				process.chdir(path.dirname(destfile));
