@@ -1,0 +1,4 @@
+version: '2'
+includes:
+  A: 'a.yaml'
+  B: 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v2.0/yaml/petstore-minimal.yaml'
