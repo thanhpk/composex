@@ -1,6 +1,6 @@
 version: '2'
 includes:
-  A: './a.yml'
+  A: './v/a.yml'
   B: 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v2.0/yaml/petstore-minimal.yaml'
 
 services:  
