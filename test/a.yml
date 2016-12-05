@@ -17,7 +17,7 @@ services:
 
     links:
       - fpm1:fpm
-
+      - ng
   fpm2:
     build: .
     image: thanhpk/assetup:0.0.2
