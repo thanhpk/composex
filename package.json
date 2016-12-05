@@ -1,0 +1,26 @@
+{
+  "name": "composex",
+  "version": "1.0.0",
+  "description": "module enhancement for docker compose",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/thanhpk/composex.git"
+  },
+  "keywords": [
+    "docker",
+    "compose"
+  ],
+  "author": "Pham Kieu Thanh",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thanhpk/composex/issues"
+  },
+  "homepage": "https://github.com/thanhpk/composex#readme",
+  "dependencies": {
+    "node-yaml": "^3.0.3"
+  }
+}
