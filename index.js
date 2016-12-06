@@ -60,7 +60,7 @@ function parse(pathtoyml, cb, currentPath) {
 			cb(ymlobj);
 			return;
 		}
-		
+
 		async.filter(Object.keys(ymlobj.includes), function(namespace, callback) {
 			parse(ymlobj.includes[namespace], function(childymlobj) {
 				var childServices = childymlobj.services;
@@ -77,11 +77,13 @@ function parse(pathtoyml, cb, currentPath) {
 				
 				_.map(Object.keys(childServices), function(servicename) {
 					if (services[`${namespace}.${servicename}`] != undefined) {
+						toFullname(childServices[servicename], 'links', namespace);
+						
 						merge(childServices[servicename], services[`${namespace}.${servicename}`]);
 					}
 					
 					services[`${namespace}.${servicename}`] = childServices[servicename];
-					toFullname(services[`${namespace}.${servicename}`], 'links', namespace);
+
 
 				});
 				callback(services);
@@ -96,8 +98,8 @@ function parse(pathtoyml, cb, currentPath) {
 
 // merge links and depends_on
 function merge(dst, src) {
-
-	_.map(['externam_links', 'links', 'depends_on'], function(fieldname) {
+	console.log(dst, src);
+	_.map(['external_links', 'links', 'depends_on'], function(fieldname) {
 		var dstmap = {};
 		_.map(dst[fieldname], function(item) {
 			var	itemsplit = item.split(':');
@@ -105,17 +107,16 @@ function merge(dst, src) {
 		});
 		
 		_.map(src[fieldname], function(item) {
-			var itemsplit =  item.split(':')[1];
+			var itemsplit =  item.split(':');
 			var name = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
 			var ref = itemsplit[0];
-			
 			dstmap[name] = ref;
 		});
 
 		
 		var newfield = [];
 		_.map(Object.keys(dstmap), function(itemname) {
-			newfield.push(`${itemname}:${dstmap[itemname]}`);
+			newfield.push(`${dstmap[itemname]}:${itemname}`);
 		});
 
 		dst[fieldname] = newfield;
