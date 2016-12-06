@@ -1,0 +1,7 @@
+version: '2'
+includes:
+  A1: './2.yml'
+	
+services:
+  mongo:
+    image: thanhpk/mongo

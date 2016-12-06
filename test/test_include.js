@@ -13,5 +13,16 @@ describe('Include', function() {
 				done();
 			});
 		});
+
+		it('should allow multiple include', function(done) {
+			composex.parse(path.resolve(__dirname, './allservice/3.yml'), function(obj) {
+				assert.notEqual(obj.services['mongo'], undefined);
+				assert.notEqual(obj.services['A1.mysql'], undefined);
+				assert.notEqual(obj.services['A1.A1.nginx'], undefined);
+				assert.notEqual(obj.services['A1.A1.fpm'], undefined);
+				done();
+			});
+			
+		});
 	});
 });
