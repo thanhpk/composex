@@ -54,18 +54,31 @@ function parse(pathtoyml, cb, currentPath) {
 
 	function parseYml(content) {
 		var ymlobj = yaml.parse(content);
-		var namespaceMap = ymlobj.includes;
+
+		if (ymlobj.services != undefined) _.map(Object.keys(ymlobj.services), function(servicename) {
+			if (!ymlobj.services[servicename].build) return;
+			if (typeof ymlobj.services[servicename].build === "string") {
+				ymlobj.services[servicename].build = toAbsolutePath(currentPath, ymlobj.services[servicename].build);
+			} else {
+				ymlobj.services[servicename].build.context = toAbsolutePath(currentPath, ymlobj.services[servicename].build.context);
+			}
+		});
 
 		if (ymlobj.includes == undefined) {
 			cb(ymlobj);
 			return;
 		}
 
+		var namespaceMap = ymlobj.includes;
+		
 		async.filter(Object.keys(ymlobj.includes), function(namespace, callback) {
 			parse(ymlobj.includes[namespace], function(childymlobj) {
 				var childServices = childymlobj.services;
 				var services = {};
-				_.map(Object.keys(ymlobj.services), function(servicename) {
+
+
+
+				if (ymlobj.services != undefined) _.map(Object.keys(ymlobj.services), function(servicename) {
 					services[servicename] = ymlobj.services[servicename];
 					//			toFullname(services[servicename], 'links', namespace);
 				});
@@ -201,8 +214,6 @@ function override(dst, src) {
 	});
 }
 
-function toRelativePath(filepath, value) {
-
+function toAbsolutePath(filepath, value) {
+	return validUrl.isUri(filepath) ? filepath : path.resolve(filepath, value);
 }
-
-
