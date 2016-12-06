@@ -3,6 +3,7 @@ includes:
   A: common.yml
 services:
   A.nginx:
+    build: ../
     links:
       - newfpm:fpm
     ports:

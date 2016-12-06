@@ -81,6 +81,7 @@ function parse(pathtoyml, cb, currentPath) {
 						
 						merge(childServices[servicename], services[`${namespace}.${servicename}`]);
 						mergePort(childServices[servicename], services[`${namespace}.${servicename}`]);
+						override(childServices[servicename], services[`${namespace}.${servicename}`]);
 					}
 					
 					services[`${namespace}.${servicename}`] = childServices[servicename];
@@ -194,7 +195,7 @@ function mergeArray(dst, src) {
 function override(dst, src) {
 	//container_name, entrypoint, image
 	_.map(['build', 'context', 'dockerfile', 'container_name', 'entrypoint', 'image', 'cpu_shares', 'cpu_quota', 'cpuset', 'domainname', 'hostname', 'ipc', 'mac_address', 'mem_limit', 'memswap_limit', 'oom_score_adj', 'privileged', 'read_only', 'restart', 'shm_size', 'stdin_open', 'tty', 'user', 'working_dir'], function(fieldname) {
-		if (src[fieldname] !== undefined) dst[fieldname] = src[fieldname];
+		if (src[fieldname] != undefined) dst[fieldname] = src[fieldname];
 	});
 }
 
