@@ -1,0 +1,7 @@
+version: '2'
+services:
+  nginx:
+    links:
+      - fpm:fpm
+  fpm:
+    images: thanhpk/fpm

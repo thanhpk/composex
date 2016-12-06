@@ -1,0 +1,11 @@
+version: '2'
+include:
+  A: common.yml
+services:
+  A.nginx:
+    links:
+      - newfpm:fpm
+
+  newfpm:
+    image: thanhpk/newfpm
+  

@@ -4,7 +4,7 @@
   "description": "module enhancement for docker compose",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha"
+    "test": "./node_modules/mocha/bin/mocha ./test"
   },
   "repository": {
     "type": "git",

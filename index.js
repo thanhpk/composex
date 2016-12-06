@@ -1,11 +1,12 @@
 var yaml = require('yamljs');
 var request = require('request');
 var fs = require('fs');
-var destfile = process.argv[2];
 var validUrl = require('valid-url');
 var async = require('async');
 var _ = require('lodash');
 var path = require('path');
+
+exports.merge = parse;
 
 function toFullname(ymlobj, prop, namespace) {
 	if (ymlobj[prop] == undefined) {
@@ -38,12 +39,12 @@ function parse(pathtoyml, cb, currentPath) {
 	}
 	else {
 		var absolutePath = !currentPath ? path.resolve(pathtoyml) : path.resolve(currentPath, pathtoyml);
+		
 		fs.readFile(absolutePath, 'utf8', function(err, data) {
 			if (err) throw err;
 			currentPath = path.dirname(absolutePath);
 			parseYml(data);
 		});
-
 	}
 
 	function parseYml(content) {
@@ -70,23 +71,22 @@ function parse(pathtoyml, cb, currentPath) {
 				}
 				
 				_.map(Object.keys(childServices), function(servicename) {
+					if (services[`${namespace}.${servicename}`] != undefined) {
+						merge(childServices[servicename], services[`${namespace}.${servicename}`]);
+					}
+					
 					services[`${namespace}.${servicename}`] = childServices[servicename];
 					toFullname(services[`${namespace}.${servicename}`], 'links', namespace);
+
 				});
 				callback(services);
 			}, currentPath);
 		}, function(servicesArr) {
+			console.log('done');
 			cb(servicesArr);
 		});
-
-
 	}
 }
-
-parse(destfile, function(data){
-	console.log(data);
-});
-//process.chdir(path.dirname(destfile));
 
 // merge links and depends_on
 function merge(dst, src) {
