@@ -7,9 +7,8 @@ describe('Override', function() {
 	// namespace
 	describe('links', function() {
 		it('should be overrided', function(done) {
-			composex.merge( path.resolve(__dirname, './overridelink/deploy.yml'), function(obj) {
-				assert.equal(obj['A.nginx'].links[0].trim(), 'newfpm:fpm');
-				
+			composex.parse( path.resolve(__dirname, './overridelink/deploy.yml'), function(obj) {
+				assert.equal(obj.services['A.nginx'].links[0].trim(), 'newfpm:fpm');
 				done();
 			});
 		});

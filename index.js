@@ -6,7 +6,12 @@ var async = require('async');
 var _ = require('lodash');
 var path = require('path');
 
-exports.merge = parse;
+exports.parse = parse;
+exports.merge = function(pathtoyml, cb) {
+	parse(pathtoyml, function() {
+		
+	});
+}
 
 function toFullname(ymlobj, prop, namespace) {
 	if (ymlobj[prop] == undefined) {
@@ -52,13 +57,13 @@ function parse(pathtoyml, cb, currentPath) {
 		var namespaceMap = ymlobj.includes;
 
 		if (ymlobj.includes == undefined) {
-			cb(ymlobj.services);
+			cb(ymlobj);
 			return;
 		}
 		
 		async.filter(Object.keys(ymlobj.includes), function(namespace, callback) {
-			parse(ymlobj.includes[namespace], function(childServices) {
-				
+			parse(ymlobj.includes[namespace], function(childymlobj) {
+				var childServices = childymlobj.services;
 				var services = {};
 				_.map(Object.keys(ymlobj.services), function(servicename) {
 					services[servicename] = ymlobj.services[servicename];
@@ -82,8 +87,9 @@ function parse(pathtoyml, cb, currentPath) {
 				callback(services);
 			}, currentPath);
 		}, function(servicesArr) {
-			console.log('done');
-			cb(servicesArr);
+			delete ymlobj.includes;
+			ymlobj.services = servicesArr;
+			cb(ymlobj);
 		});
 	}
 }
@@ -195,3 +201,5 @@ function override(dst, src) {
 function toRelativePath(filepath, value) {
 
 }
+
+
