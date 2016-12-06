@@ -87,3 +87,27 @@ parse(destfile, function(data){
 	console.log(data)
 });
 				process.chdir(path.dirname(destfile));
+
+
+function merge(dst, src) {
+
+	var dstlinkmap = {};
+	_.map(dst.links, function(link) {
+		var	linksplit = link.split(':');
+		dstlinkmap[linksplit[1]] = dstlinkmap[linksplit[0]];
+	});
+	
+	_.map(src.links, function(link) {
+		var linksplit =  link.split(':')[1];
+		var servicename = !linksplit[1] ? linksplit[0] : linksplit[1];
+		var serviceref = linksplit[0];
+		
+		dstlinkmap[servicename] = serviceref;
+	});
+	var  newlinks = [];
+	_.map(Object.keys(dstlinkmap), function(servicename) {
+		newlinks.push(`${dstlinkmap}:${servicename}`);
+	});
+
+	dst.links = newlink;
+}
