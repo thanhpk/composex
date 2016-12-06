@@ -84,32 +84,37 @@ function parse(pathtoyml, cb, currentPath) {
 }
 
 parse(destfile, function(data){
-	console.log(data)
+	console.log(data);
 });
-				process.chdir(path.dirname(destfile));
+//process.chdir(path.dirname(destfile));
 
 // merge links and depends_on
 function merge(dst, src) {
 
-	var dstlinkmap = {};
-	_.map(dst.links, function(link) {
-		var	linksplit = link.split(':');
-		dstlinkmap[linksplit[1]] = dstlinkmap[linksplit[0]];
-	});
-	
-	_.map(src.links, function(link) {
-		var linksplit =  link.split(':')[1];
-		var servicename = !linksplit[1] ? linksplit[0] : linksplit[1];
-		var serviceref = linksplit[0];
+	_.map(['links', 'depends_on'], function(fieldname) {
+		var dstmap = {};
+		_.map(dst[fieldname], function(item) {
+			var	itemsplit = item.split(':');
+			dstmap[itemsplit[1]] = itemsplit[0];
+		});
 		
-		dstlinkmap[servicename] = serviceref;
-	});
-	var  newlinks = [];
-	_.map(Object.keys(dstlinkmap), function(servicename) {
-		newlinks.push(`${dstlinkmap}:${servicename}`);
-	});
+		_.map(src[fieldname], function(item) {
+			var itemsplit =  item.split(':')[1];
+			var name = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
+			var ref = itemsplit[0];
+			
+			dstmap[name] = ref;
+		});
 
-	dst.links = newlink;
+		
+		var newfield = [];
+		_.map(Object.keys(dstmap), function(itemname) {
+			newfield.push(`${itemname}:${dstmap[itemname]}`);
+		});
+
+		dst[fieldname] = newfield;
+
+	});
 }
 
 
@@ -118,7 +123,27 @@ function mergeOtherField(dst, src) {
 }
 
 function mergePort(dst, src) {
+	var fieldname = 'ports';
+	var dstmap = {};
+	_.map(dst[fieldname], function(item) {
+		var	itemsplit = item.split(':');
+		dstmap[itemsplit[0]] = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
+	});
 	
+	_.map(src[fieldname], function(item) {
+		var itemsplit =  item.split(':')[1];
+		var name = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
+		var serviceref = itemsplit[0];
+		
+		dstmap[itemsplit[0]] = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
+	});
+	
+	var newfield = [];
+	_.map(Object.keys(dstmap), function(itemname) {
+		newfield.push(`${itemname}:${dstmap[itemname]}`);
+	});
+
+	dst[fieldname] = newfield;
 }
 
 function mergeArgsEnv(dst, src) {

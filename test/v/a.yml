@@ -1,6 +1,6 @@
 version: '2.0'
 includes:	
-  C: 'c.yml'
+  C: '../c.yml'
 services:
   
 
