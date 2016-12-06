@@ -91,7 +91,7 @@ parse(destfile, function(data){
 // merge links and depends_on
 function merge(dst, src) {
 
-	_.map(['links', 'depends_on'], function(fieldname) {
+	_.map(['externam_links', 'links', 'depends_on'], function(fieldname) {
 		var dstmap = {};
 		_.map(dst[fieldname], function(item) {
 			var	itemsplit = item.split(':');
@@ -146,8 +146,47 @@ function mergePort(dst, src) {
 	dst[fieldname] = newfield;
 }
 
-function mergeArgsEnv(dst, src) {
+function arrayUnique(array) {
+  var a = array.concat();
+  for(var i=0; i<a.length; ++i) {
+    for(var j=i+1; j<a.length; ++j) {
+      if(a[i] === a[j])
+        a.splice(j--, 1);
+    }
+  }
+  return a;
+}
 
+
+function mergeArray(dst, src) {
+	_.map(['args', 'command', 'environment', 'expose', 'labels', 'networks', 'aliases', 'env_file'], function(fieldname) {
+		if (dst[fieldname].constructor === Array) {
+			if (src[fieldname] != undefined) {
+				// convert src to array if itsn't
+				var newsrc = [];
+				if (src[fieldname].constructor !== Array) {
+					_.map(Object.keys(src[fieldname]), function(key) {
+						newsrc.push([key]);
+					});
+				}
+				else {
+					newsrc = src;
+				}
+				dst[fieldname] = arrayUnique(dst[fieldname].concat(newsrc));
+			}
+			return;
+		}
+		var dstmap = {};
+		_.map(Object.keys(dst[fieldname]), function(key) {
+			dstmap[key] = dst[fieldname][key];
+		});
+		
+		_.map(src[fieldname], function(key) {
+			dstmap[key] = src[fieldname][key];
+		});
+		
+		dst[fieldname] = dstmap;
+	});
 }
 
 function override(dst, src) {
@@ -155,4 +194,8 @@ function override(dst, src) {
 	_.map(['container_name', 'entrypoint', 'image', 'cpu_shares', 'cpu_quota', 'cpuset', 'domainname', 'hostname', 'ipc', 'mac_address', 'mem_limit', 'memswap_limit', 'oom_score_adj', 'privileged', 'read_only', 'restart', 'shm_size', 'stdin_open', 'tty', 'user', 'working_dir'], function(fieldname) {
 		if (src[fieldname] !== undefined) dst[fieldname] = src[fieldname];
 	});
+}
+
+function toRelativePath(filepath, value) {
+
 }
