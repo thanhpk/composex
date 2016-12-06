@@ -80,7 +80,7 @@ function parse(pathtoyml, cb, currentPath) {
 						toFullname(childServices[servicename], 'links', namespace);
 						
 						merge(childServices[servicename], services[`${namespace}.${servicename}`]);
-						mergePort(childServices[servicename], services[`${namespace}.${servicename}`]);
+						mergePortVolume(childServices[servicename], services[`${namespace}.${servicename}`]);
 						override(childServices[servicename], services[`${namespace}.${servicename}`]);
 					}
 					
@@ -126,27 +126,28 @@ function merge(dst, src) {
 }
 
 
-function mergePort(dst, src) {
-	var fieldname = 'ports';
-	var dstmap = {};
-	_.map(dst[fieldname], function(item) {
-		var	itemsplit = item.split(':');
-		dstmap[itemsplit[0]] = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
-	});
-	
-	_.map(src[fieldname], function(item) {
-		var itemsplit =  item.split(':');
-		var name = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
-		var ref = itemsplit[0];
-		dstmap[ref] = name;
-	});
-	
-	var newfield = [];
-	_.map(Object.keys(dstmap), function(itemname) {
-		newfield.push(`${itemname}:${dstmap[itemname]}`);
-	});
+function mergePortVolume(dst, src) {
+	_.map(['ports', 'volumes'], function(fieldname) {
+		var dstmap = {};
+		_.map(dst[fieldname], function(item) {
+			var	itemsplit = item.split(':');
+			dstmap[itemsplit[0]] = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
+		});
+		
+		_.map(src[fieldname], function(item) {
+			var itemsplit =  item.split(':');
+			var name = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
+			var ref = itemsplit[0];
+			dstmap[ref] = name;
+		});
+		
+		var newfield = [];
+		_.map(Object.keys(dstmap), function(itemname) {
+			newfield.push(`${itemname}:${dstmap[itemname]}`);
+		});
 
-	dst[fieldname] = newfield;
+		dst[fieldname] = newfield;
+	});
 }
 
 function arrayUnique(array) {
