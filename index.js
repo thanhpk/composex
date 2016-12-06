@@ -80,6 +80,7 @@ function parse(pathtoyml, cb, currentPath) {
 						toFullname(childServices[servicename], 'links', namespace);
 						
 						merge(childServices[servicename], services[`${namespace}.${servicename}`]);
+						mergePort(childServices[servicename], services[`${namespace}.${servicename}`]);
 					}
 					
 					services[`${namespace}.${servicename}`] = childServices[servicename];
@@ -133,11 +134,10 @@ function mergePort(dst, src) {
 	});
 	
 	_.map(src[fieldname], function(item) {
-		var itemsplit =  item.split(':')[1];
+		var itemsplit =  item.split(':');
 		var name = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
-		var serviceref = itemsplit[0];
-		
-		dstmap[itemsplit[0]] = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
+		var ref = itemsplit[0];
+		dstmap[ref] = name;
 	});
 	
 	var newfield = [];
