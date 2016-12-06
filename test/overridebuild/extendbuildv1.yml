@@ -1,0 +1,6 @@
+version: '2'
+
+includes:
+  A: 'common/commonbuildv1.yml'
+
+services:

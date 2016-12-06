@@ -1,0 +1,13 @@
+version: '2'
+services:
+  nginx:
+    build:
+      context: .
+      Dockerfile: Dockerfile.yml
+    links:
+      - fpm:fpm
+    ports:
+      - "7000:8000"
+      - "30"
+  fpm:
+    images: thanhpk/fpm

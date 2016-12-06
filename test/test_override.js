@@ -26,11 +26,21 @@ describe('Override', function() {
 	});
 
 	describe('builds', function() {
-		it('should be overrieded', function(done) {
-			composex.parse(path.resolve(__dirname, './overrideport/deploy.yml'), function(obj) {
-				assert.equal('../', obj.services['A.nginx'].build);
+		it('should be absolute path (v1)', function(done) {
+			composex.parse(path.resolve(__dirname, './overridebuild/extendbuildv1.yml'), function(obj) {
+				assert.equal(path.resolve(__dirname, './overridebuild/common'), obj.services['A.nginx'].build);
+				done();
+			});
+		});
+
+
+		it('should be absolute path (v2)', function(done) {
+			composex.parse(path.resolve(__dirname, './overridebuild/extendbuildv2.yml'), function(obj) {
+				assert.equal(path.resolve(__dirname, './overridebuild/common'), obj.services['A.nginx'].build.context);
 				done();
 			});
 		});
 	});
+
+	
 });
