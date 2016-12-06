@@ -1,6 +1,6 @@
 {
   "name": "composex",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "module enhancement for docker compose",
   "main": "index.js",
   "scripts": {
@@ -29,10 +29,12 @@
   "dependencies": {
     "async": "^2.1.4",
     "lodash": "^4.17.2",
-    "mocha": "^3.2.0",
     "request": "^2.79.0",
     "shelljs": "^0.7.5",
     "valid-url": "^1.0.9",
     "yamljs": "^0.2.8"
-  }
+  },
+	"devDependencies": {
+		"mocha": "^3.2.0"
+	}
 }
