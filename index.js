@@ -80,7 +80,7 @@ function parse(pathtoyml, cb, currentPath) {
 						toFullname(childServices[servicename], 'links', namespace);
 						
 						merge(childServices[servicename], services[`${namespace}.${servicename}`]);
-						mergePortVolume(childServices[servicename], services[`${namespace}.${servicename}`]);
+						mergePort(childServices[servicename], services[`${namespace}.${servicename}`]);
 						override(childServices[servicename], services[`${namespace}.${servicename}`]);
 					}
 					
@@ -100,7 +100,7 @@ function parse(pathtoyml, cb, currentPath) {
 
 // merge links and depends_on
 function merge(dst, src) {
-	_.map(['external_links', 'links', 'depends_on'], function(fieldname) {
+	_.map(['external_links', 'links', 'depends_on', 'volumes'], function(fieldname) {
 		if (!src[fieldname]) return;
 		var dstmap = {};
 		_.map(dst[fieldname], function(item) {
@@ -127,8 +127,8 @@ function merge(dst, src) {
 }
 
 
-function mergePortVolume(dst, src) {
-	_.map(['ports', 'volumes'], function(fieldname) {
+function mergePort(dst, src) {
+	_.map(['ports'], function(fieldname) {
 		var dstmap = {};
 		_.map(dst[fieldname], function(item) {
 			var	itemsplit = item.split(':');
