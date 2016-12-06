@@ -2,6 +2,7 @@ var assert = require('assert');
 var composex = require('../index.js');
 var yaml = require('yamljs');
 var path = require('path');
+var _ = require('lodash');
 
 describe('Override', function() {
 	// namespace
@@ -14,4 +15,15 @@ describe('Override', function() {
 		});
 	});
 
+	describe('ports', function() {
+		it('should be overried', function(done) {
+			composex.parse(path.resolve(__dirname, './overrideport/deploy.yml'), function(obj) {
+				var expectport = ["7000:7000", "30:30", "80:40"].sort();
+				assert.equal(true, _.isEqual(obj.services['A.nginx'].ports.sort(), expectport));
+
+				done();
+			});
+		});
+	});
+	
 });

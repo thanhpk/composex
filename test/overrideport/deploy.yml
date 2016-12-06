@@ -1,0 +1,14 @@
+version: '2'
+includes:
+  A: common.yml
+services:
+  A.nginx:
+    links:
+      - newfpm:fpm
+    ports:
+      - "7000"
+      - "80:40"
+
+  newfpm:
+    image: thanhpk/newfpm
+  
