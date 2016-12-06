@@ -4,7 +4,7 @@
   "description": "module enhancement for docker compose",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/mocha/bin/mocha"
   },
   "repository": {
     "type": "git",
@@ -23,9 +23,8 @@
   "dependencies": {
     "async": "^2.1.4",
     "lodash": "^4.17.2",
-    "node-yaml": "^3.0.3",
+    "mocha": "^3.2.0",
     "request": "^2.79.0",
-    "underscore": "^1.8.3",
     "valid-url": "^1.0.9",
     "yamljs": "^0.2.8"
   }
