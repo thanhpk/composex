@@ -1,6 +1,6 @@
 {
   "name": "composex",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "module enhancement for docker compose",
   "main": "index.js",
   "scripts": {

@@ -101,6 +101,7 @@ function parse(pathtoyml, cb, currentPath) {
 // merge links and depends_on
 function merge(dst, src) {
 	_.map(['external_links', 'links', 'depends_on'], function(fieldname) {
+		if (!src[fieldname]) return;
 		var dstmap = {};
 		_.map(dst[fieldname], function(item) {
 			var	itemsplit = item.split(':');
