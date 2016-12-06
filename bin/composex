@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+var destfile = process.argv[2];
+var composex = require('../index.js');
+var yaml = require('yamljs');
+composex.parse(destfile, function(data) {
+
+console.log(yaml.dump(data));
+});

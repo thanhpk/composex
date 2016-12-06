@@ -1,6 +1,6 @@
 {
   "name": "composex",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "module enhancement for docker compose",
   "main": "index.js",
   "scripts": {
@@ -10,10 +10,16 @@
     "type": "git",
     "url": "git+ssh://git@github.com/thanhpk/composex.git"
   },
+	"bin": {
+		"composex": "./bin/composex"
+	},
   "keywords": [
     "docker",
     "compose"
   ],
+	"engines": {
+		"node": ">=0.10.2"
+	},
   "author": "Pham Kieu Thanh",
   "license": "MIT",
   "bugs": {
