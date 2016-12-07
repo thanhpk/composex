@@ -32,8 +32,7 @@ function toFullname(ymlobj, prop, namespace) {
 
 		newprop.push(newpropitem);
 	}
-	ymlobj[prop] = newprop;
-	
+	ymlobj[prop] = newprop;	
 }
 
 function parse(pathtoyml, cb, currentPath) {
@@ -80,26 +79,21 @@ function parse(pathtoyml, cb, currentPath) {
 
 				if (ymlobj.services != undefined) _.map(Object.keys(ymlobj.services), function(servicename) {
 					services[servicename] = ymlobj.services[servicename];
-					//			toFullname(services[servicename], 'links', namespace);
 				});
 
 				if (childServices == undefined) {
 					callback(services);
 					return;
 				}
-				
 				_.map(Object.keys(childServices), function(servicename) {
 					if (services[`${namespace}.${servicename}`] != undefined) {
-						toFullname(childServices[servicename], 'links', namespace);
-						
 						merge(childServices[servicename], services[`${namespace}.${servicename}`]);
 						mergePort(childServices[servicename], services[`${namespace}.${servicename}`]);
 						override(childServices[servicename], services[`${namespace}.${servicename}`]);
 					}
-					
+
+					toFullname(childServices[servicename], 'links', namespace);
 					services[`${namespace}.${servicename}`] = childServices[servicename];
-
-
 				});
 				callback(services);
 			}, currentPath);
