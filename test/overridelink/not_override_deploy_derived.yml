@@ -1,0 +1,3 @@
+version: '2'
+includes:
+  B: not_override_deploy.yml
