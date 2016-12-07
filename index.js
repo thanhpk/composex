@@ -86,13 +86,13 @@ function parse(pathtoyml, cb, currentPath) {
 					return;
 				}
 				_.map(Object.keys(childServices), function(servicename) {
+					toFullname(childServices[servicename], 'links', namespace);
 					if (services[`${namespace}.${servicename}`] != undefined) {
 						merge(childServices[servicename], services[`${namespace}.${servicename}`]);
 						mergePort(childServices[servicename], services[`${namespace}.${servicename}`]);
 						override(childServices[servicename], services[`${namespace}.${servicename}`]);
 					}
 
-					toFullname(childServices[servicename], 'links', namespace);
 					services[`${namespace}.${servicename}`] = childServices[servicename];
 				});
 				callback(services);

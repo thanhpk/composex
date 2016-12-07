@@ -14,9 +14,17 @@ describe('Override', function() {
 			});
 		});
 
-			it('should be full when not being override (multilevel)', function(done) {
+		it('should be full when not being override (multilevel)', function(done) {
 			composex.parse(path.resolve(__dirname, './overridelink/not_override_deploy_derived.yml'), function(obj) {
 				assert.equal(obj.services['B.A.nginx'].links[0].trim(), 'B.A.fpm:fpm');
+				done();
+			});
+		});
+
+
+		it('shoud be correct level', function(done) {
+			composex.parse(path.resolve(__dirname, './overridelink/not_override_deploy_derived.yml'), function(obj) {
+				assert.equal(obj.services['B.A.nginx'].links[1].trim(), 'B.mongo:mongo');
 				done();
 			});
 		});

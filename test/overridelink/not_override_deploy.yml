@@ -2,3 +2,8 @@ version: '2'
 includes:
   A: common.yml
 services:
+  A.nginx:
+    links:
+      - mongo:mongo
+  mongo:
+    image: mongo
