@@ -7,12 +7,11 @@ var async = require('async');
 var _ = require('lodash');
 var path = require('path');
 
-
-exports.parse = function(pathtoyml, scope, callback, currentPath) {
+exports.parse = function(pathtoyml, scope, dfspath, callback, currentPath) {
 
 		if (validUrl.isUri(pathtoyml)) {
 		request(pathtoyml, function(err, response, body) {
-			parseYml(body, scope, callback);
+			parseYml(body, scope, dfspath, callback);
 		});
 	}
 	else {
@@ -21,13 +20,13 @@ exports.parse = function(pathtoyml, scope, callback, currentPath) {
 		fs.readFile(absolutePath, 'utf8', function(err, data) {
 			if (err) throw err;
 			currentPath = path.dirname(absolutePath);
-			parseYml(data, scope, callback);
+			parseYml(data, scope, dfspath, callback);
 		});
 	}
 }
 
 
-function parseYml(content, scope, callback) {
+function parseYml(content, scope, dfspath, callback) {
 	var net = yaml.parse(content);
 
 	if (!net.services) {
@@ -43,10 +42,26 @@ function parseYml(content, scope, callback) {
 		
 		if (net.services[servicename] != undefined)	createscript += parseEnv(net.services[servicename].environment);
 		if (net.services[servicename] != undefined)	createscript += parseExpose(net.services[servicename].expose);
+		if (net.services[servicename] != undefined)	createscript += parseVolume(net.services[servicename].volumes, scope, dfspath, servicename);
 		script += ` --network ${scope}_overlay_ds`; 
 		script += createscript + "\n";
 	});
 	callback(script);
+}
+
+function parseVolume(volumeyml, scope, dfspath, servicename) {
+	if (!volumeyml) return "";
+
+	var volume = "";
+	_.map(volumeyml, function(v) {
+		var splitV = v.split(':');
+		
+		v = splitV[1] || splitV[0];
+		
+		volume += ` --mount type=bind,source=${dfspath}/${scope}/${servicename}${v},destination=${v}`;
+	});
+
+	return volume;
 }
 
 function parseEnv(envyml) {
