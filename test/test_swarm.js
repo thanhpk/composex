@@ -20,8 +20,26 @@ describe('Swarm', function() {
 			swarm.parse(path.resolve(__dirname, './swarm/docker-compose.yml'), 'thanhpk', function(output) {
 				assert.Equal(output.indexOf('--env \'thanh=1234\'') != -1 || output.indexOf('-e \'thanh=1234\'') != -1, true);
 				assert.Equal(output.indexOf('--env \'van=Hi llo\'') != 1 || output.indexOf('-e \'van=Hi llo\'') != -1, true);
+				done();
 			});
-			done();
+		});
+	});
+
+	describe('expose', function() {
+		it('should add --publish based on expose', function(done) {
+			swarm.parse(path.resolve(__dirname, './swarm/docker-compose.yml'), 'thanhpk', function(output) {
+				assert.Equal(output.indexOf('--publish 8080') != -1 || output.indexOf('-p 8080') != -1, true);
+				done();
+			});
+		});
+	});
+
+	describe('network', function() {
+		it('should add --network based on scope', function(done) {
+			swarm.parse(path.resolve(__dirname, './swarm/docker-compose.yml'), 'thanhpk', function(output) {
+				assert.Equal(output.indexOf('--network thanhpk_overlay_ds'), -1);
+				done();
+			});
 		});
 	});
 });

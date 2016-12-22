@@ -5,4 +5,18 @@ services:
     environment:
       - thanh=1234
       - van=Hi llo
+  SingleEnvFile:
+    env_file: b.env
+    expose:
+      - "8080"
+      
+  MultipleEnvFile:
+    env_file:
+      - a.env # has comments in it
+      - b.env
+  Override:
+    enviroment:
+      - A=1
+    env_file:
+      - a.env
     
