@@ -3,11 +3,10 @@ var composex = require('../index.js');
 var yaml = require('yamljs');
 var path = require('path');
 
-describe('Include', function() {
+describe('Hostenv', function() {
 	describe('hostenv', function() {
 		it('should be resolve as env', function(done) {
 			composex.parse(path.resolve(__dirname, './hostenv/deploy.yml'), function(obj) {
-				console.log(obj.services);
 				assert.notEqual(obj.services['webserver'].environment.join('\n').indexOf('DB=database'), -1);
 				done();
 			});

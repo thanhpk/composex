@@ -35,10 +35,25 @@ function toFullname(ymlobj, prop, namespace) {
 	ymlobj[prop] = newprop;	
 }
 
+function toFullnameEnv(ymlobj, namespace) {
+	if (ymlobj.host_env == undefined) {
+		return;
+	}
+	var newenvs = [];
+	_.map(ymlobj.host_env, function(env) {
+		var hostenvsplit = env.split('=');
+		newenvs.push(`${hostenvsplit[0]}=${namespace}.${hostenvsplit[1]}`);
+	});
+	ymlobj.host_env = newenvs;
+}
+
 function parse(pathtoyml, cb, currentPath) {
 	if (validUrl.isUri(pathtoyml)) {
 		request(pathtoyml, function(err, response, body) {
-			parseYml(body);
+			parseYml(body, function(ymlobj) {
+				convertHostEnvToEnv(ymlobj.services);
+				cb(ymlobj);
+			});
 		});
 	}
 	else {
@@ -47,11 +62,14 @@ function parse(pathtoyml, cb, currentPath) {
 		fs.readFile(absolutePath, 'utf8', function(err, data) {
 			if (err) throw err;
 			currentPath = path.dirname(absolutePath);
-			parseYml(data);
+			parseYml(data, function(ymlobj) {
+				convertHostEnvToEnv(ymlobj.services);
+				cb(ymlobj);
+			});
 		});
 	}
 
-	function parseYml(content) {
+	function parseYml(content, cb) {
 		var ymlobj = yaml.parse(content);
 
 		if (ymlobj.services != undefined) _.map(Object.keys(ymlobj.services), function(servicename) {
@@ -84,10 +102,12 @@ function parse(pathtoyml, cb, currentPath) {
 				}
 				_.map(Object.keys(childServices), function(servicename) {
 					toFullname(childServices[servicename], 'links', namespace);
+					toFullnameEnv(childServices[servicename], namespace);
 					if (services[`${namespace}.${servicename}`] != undefined) {
 						merge(childServices[servicename], services[`${namespace}.${servicename}`]);
 						mergePort(childServices[servicename], services[`${namespace}.${servicename}`]);
 						override(childServices[servicename], services[`${namespace}.${servicename}`]);
+						mergeEnvHost(childServices[servicename],  services[`${namespace}.${servicename}`]);
 					}
 					services[`${namespace}.${servicename}`] = childServices[servicename];
 				});
@@ -124,8 +144,39 @@ function merge(dst, src) {
 		});
 
 		dst[fieldname] = newfield;
-
 	});
+}
+
+function convertHostEnvToEnv(services) {
+	if (services == undefined) return;
+	_.map(services, function(service) {
+		if (service == undefined || service.host_env == undefined) return;
+
+		service.environment = service.environment || [];
+		service.environment = service.environment.concat(service.host_env);
+	});
+}
+
+function mergeEnvHost(dst, src) {
+	var dstmap = {};
+	_.map(dst.host_env, function(item) {
+		var	itemsplit = item.split('=');
+		dstmap[itemsplit[0]] = itemsplit[1] || itemsplit[0];
+	});
+		
+	_.map(src.host_env, function(item) {
+		var itemsplit =  item.split('=');
+		dstmap[itemsplit[0]] = itemsplit[1] || itemsplit[0];
+	});
+
+	if (dst.environment == undefined) {
+		dst.environment = [];
+	}
+	var new_hostenv = [];
+	_.map(Object.keys(dstmap), function(itemname) {
+		new_hostenv.push(`${itemname}=${dstmap[itemname]}`);
+	});
+	dst.host_env = new_hostenv;
 }
 
 function mergePort(dst, src) {
