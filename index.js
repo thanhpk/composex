@@ -5,13 +5,15 @@ var validUrl = require('valid-url');
 var async = require('async');
 var _ = require('lodash');
 var path = require('path');
+var swarm = require('./swarm.js');
 
 exports.parse = parse;
 exports.merge = function(pathtoyml, cb) {
 	parse(pathtoyml, function() {
-		
 	});
 };
+
+exports.toSwarm = swarm.parse;
 
 function toFullname(ymlobj, prop, namespace) {
 	if (ymlobj[prop] == undefined) {

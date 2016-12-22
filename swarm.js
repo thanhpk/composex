@@ -23,8 +23,7 @@ exports.parse = function(pathtoyml, scope, dfspath, callback, currentPath) {
 			parseYml(data, scope, dfspath, callback);
 		});
 	}
-}
-
+};
 
 function parseYml(content, scope, dfspath, callback) {
 	var net = yaml.parse(content);
@@ -43,8 +42,10 @@ function parseYml(content, scope, dfspath, callback) {
 		if (net.services[servicename] != undefined)	createscript += parseEnv(net.services[servicename].environment);
 		if (net.services[servicename] != undefined)	createscript += parseExpose(net.services[servicename].expose);
 		if (net.services[servicename] != undefined)	createscript += parseVolume(net.services[servicename].volumes, scope, dfspath, servicename);
-		script += ` --network ${scope}_overlay_ds`; 
-		script += createscript + "\n";
+		script += ` --network ${scope}_overlay_ds`;
+		var img = (net.services[servicename] || {image: 'alpine'})['image'];
+		var cmd = (net.services[servicename] || {command: ''})['command'];
+		script += createscript + ' ' + img + ' ' + cmd + "\n";
 	});
 	callback(script);
 }
@@ -55,9 +56,7 @@ function parseVolume(volumeyml, scope, dfspath, servicename) {
 	var volume = "";
 	_.map(volumeyml, function(v) {
 		var splitV = v.split(':');
-		
-		v = splitV[1] || splitV[0];
-		
+		v = splitV[1] || splitV[0];		
 		volume += ` --mount type=bind,source=${dfspath}/${scope}/${servicename}${v},destination=${v}`;
 	});
 
