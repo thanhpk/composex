@@ -1,0 +1,24 @@
+version: '2'
+
+services:
+  EnvironmentList:
+    environment:
+      - thanh=1234
+      - van=Hi llo
+  SingleEnvFile:
+    env_file: b.env
+    expose:
+      - "8080"
+      
+  MultipleEnvFile:
+    env_file:
+      - a.env # has comments in it
+      - b.env
+  mongo:
+    enviroment:
+      - A=1
+    env_file:
+      - a.env
+    volumes:
+      - /data/db
+      - X:/data/db2
