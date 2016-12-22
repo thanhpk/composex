@@ -1,5 +1,4 @@
 var assert = require('assert');
-
 var swarm = require('../swarm.js');
 var yrml = require('yamljs');
 var path = require('path');
@@ -13,6 +12,20 @@ describe('Swarm', function() {
 				done();
 			});
 		});
+
+		it('should have image name', function(done) {
+			swarm.parse(path.resolve(__dirname, './swarm/docker-compose.yml'), 'thanhpk', '', function(output) {
+				assert.notEqual(output.indexOf(' thanhpk234 '), -1);
+				done();
+			});
+		});
+
+		it('should have command', function(done) {
+			swarm.parse(path.resolve(__dirname, './swarm/docker-compose.yml'), 'thanhpk', '', function(output) {
+				assert.notEqual(output.indexOf(' ping google.com -g'), -1);
+				done();
+			});
+		});		
 	});
 
 	describe('enviroments', function() {			
@@ -42,7 +55,7 @@ describe('Swarm', function() {
 			});
 		});
 	});
-
+	
 	describe('volume', function() {
 		it('should add volume', function(done) {
 			swarm.parse(path.resolve(__dirname, './swarm/docker-compose.yml'), 'thanhpk', '/gluster', function(output) {

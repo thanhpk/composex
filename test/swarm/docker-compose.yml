@@ -2,6 +2,8 @@ version: '2'
 
 services:
   EnvironmentList:
+    image: thanhpk234
+    command: ping google.com -g
     environment:
       - thanh=1234
       - van=Hi llo
