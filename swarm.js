@@ -42,9 +42,9 @@ function parseYml(content, scope, callback) {
 		createscript += ` --name ${scope}.${servicename}`;
 		
 		if (net.services[servicename] != undefined)	createscript += parseEnv(net.services[servicename].environment);
-		script += createscript + "\n";
-
+		if (net.services[servicename] != undefined)	createscript += parseExpose(net.services[servicename].expose);
 		script += ` --network ${scope}_overlay_ds`; 
+		script += createscript + "\n";
 	});
 	callback(script);
 }
@@ -59,3 +59,13 @@ function parseEnv(envyml) {
 	return env;
 }
 
+function parseExpose(exposeyml) {
+	if (!exposeyml) return "";
+
+	var expose = "";
+	_.map(exposeyml, function(port) {
+		expose += ` -p ${port}`;
+	});
+
+	return expose;
+}
