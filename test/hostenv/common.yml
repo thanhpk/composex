@@ -1,0 +1,17 @@
+version: '2'
+
+includes:
+  BASE: ./base.yml
+services:
+  dashboard:
+    image: thanhpk/dashboard
+
+    host_env:
+      - DATABASEHOST=database
+  database:
+    image: mongo
+    host_env:
+      - BASE=BASE.database
+  dashboard2:
+    host_env:
+      - DATABASEHOST=database

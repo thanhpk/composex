@@ -1,0 +1,16 @@
+version: '2'
+
+includes:
+  COMMON: ./common.yml
+
+services:
+  COMMON.dashboard2:
+    host_env:
+      - DATABASEHOST=COMMON.BASE.database
+
+  database:
+    image: postgres
+  webserver:
+    image: thanhpk/1234
+    host_env:
+      - DB=database
