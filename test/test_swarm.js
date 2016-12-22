@@ -42,5 +42,15 @@ describe('Swarm', function() {
 			});
 		});
 	});
+
+	descible('volume', function() {
+		it('should add volume', function(done) {
+			swarm.parse(path.resolve(__dirname, './swarm/docker-compose.yml'), 'thanhpk', function(output) {
+				assert.Equal("--mount type=bind,source=/tmp/thanhpk/mongo/data/db,destination=/data/db", -1);
+				assert.Equal("--mount type=bind,source=/tmp/thanhpk/mongo/data/db2,destination=/data/db2", -1);
+				done();
+			});
+		});
+	});
 });
 

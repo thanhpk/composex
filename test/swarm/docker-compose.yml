@@ -14,9 +14,11 @@ services:
     env_file:
       - a.env # has comments in it
       - b.env
-  Override:
+  mongo:
     enviroment:
       - A=1
     env_file:
       - a.env
-    
+    volumes:
+      - /data/db
+      - X:/data/db2
