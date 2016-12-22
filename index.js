@@ -11,7 +11,7 @@ exports.merge = function(pathtoyml, cb) {
 	parse(pathtoyml, function() {
 		
 	});
-}
+};
 
 function toFullname(ymlobj, prop, namespace) {
 	if (ymlobj[prop] == undefined) {
@@ -74,9 +74,6 @@ function parse(pathtoyml, cb, currentPath) {
 			parse(ymlobj.includes[namespace], function(childymlobj) {
 				var childServices = childymlobj.services;
 				var services = {};
-
-
-
 				if (ymlobj.services != undefined) _.map(Object.keys(ymlobj.services), function(servicename) {
 					services[servicename] = ymlobj.services[servicename];
 				});
@@ -86,13 +83,12 @@ function parse(pathtoyml, cb, currentPath) {
 					return;
 				}
 				_.map(Object.keys(childServices), function(servicename) {
+					toFullname(childServices[servicename], 'links', namespace);
 					if (services[`${namespace}.${servicename}`] != undefined) {
 						merge(childServices[servicename], services[`${namespace}.${servicename}`]);
 						mergePort(childServices[servicename], services[`${namespace}.${servicename}`]);
 						override(childServices[servicename], services[`${namespace}.${servicename}`]);
 					}
-
-					toFullname(childServices[servicename], 'links', namespace);
 					services[`${namespace}.${servicename}`] = childServices[servicename];
 				});
 				callback(services);
@@ -116,12 +112,11 @@ function merge(dst, src) {
 		});
 		
 		_.map(src[fieldname], function(item) {
-			var itemsplit =  item.split(':');
+			var itemsplit = item.split(':');
 			var name = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
 			var ref = itemsplit[0];
 			dstmap[name] = ref;
 		});
-
 		
 		var newfield = [];
 		_.map(Object.keys(dstmap), function(itemname) {
@@ -132,7 +127,6 @@ function merge(dst, src) {
 
 	});
 }
-
 
 function mergePort(dst, src) {
 	_.map(['ports'], function(fieldname) {
@@ -168,7 +162,6 @@ function arrayUnique(array) {
   }
   return a;
 }
-
 
 function mergeArray(dst, src) {
 	_.map(['args', 'command', 'environment', 'expose', 'labels', 'networks', 'aliases', 'env_file'], function(fieldname) {
