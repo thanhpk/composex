@@ -1,0 +1,5 @@
+exports:
+  - mongo:mongodb:27000
+services:
+  mongodb:
+    image: mongodb:6.5

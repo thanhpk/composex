@@ -1,0 +1,7 @@
+
+links:
+  A: A.yml
+  B: B.yml
+
+joins:
+  - "A.database=B.db"

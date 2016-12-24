@@ -1,0 +1,14 @@
+links:
+  C: c.yml
+
+imports:
+  - database=C.mongo
+  
+exports:
+  - myweb=webserver:80
+
+services:
+  webserver:
+    host_env:
+      - DBHOST: database.host
+      - DBPORT: database.port

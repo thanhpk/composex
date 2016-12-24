@@ -1,0 +1,7 @@
+exports:
+  - "db=mysql:3306"
+  - "db2=mysql:3306"
+
+services:
+  mysql:
+    image: mysql5.6

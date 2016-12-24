@@ -6,7 +6,7 @@ var path = require('path');
 
 describle('Version2', function() {
 	describe('import export', function() {
-		it('should replace the host_env', function(done) {
+		it('should replace the host_env with name in import list', function(done) {
 			composex.parse2(__dirname + '/importexport/importer.yml', function(obj) {
 				assert.notEqual(obj.services.webserver.environment.join('\n').indexOf('DATABASE_HOST=E.mysql'), -1);
 				assert.netEqual(obj.services.webserver.environment.join('\n').indexOf('DATABASE_PORT=3309'), -1);
@@ -22,6 +22,14 @@ describle('Version2', function() {
 			});
 		});
 	});
-
+	
+	describle('join', function() {
+		it('should replace the env', function (done) {
+			composex.parse2(__dirname + '/join/join.yml', function(obj) {
+				assert.notEqual(obj.services.A.webserver.environment.join('\n').indexOf('DBHOST=B.mysql'), -1);
+				assert.notEqual(obj.services.A.webserver.environment.join('\n').indexOf('DBPORT=3306'), -1);				
+			});
+		});
+	});
 });
 
