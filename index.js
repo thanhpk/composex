@@ -173,7 +173,7 @@ function parse(pathtoyml, cb, currentPath) {
 		var namespaceMap = ymlobj.includes;
 
 		var allServices = [];
-		async.eachOf(Object.keys(ymlobj.includes), function(namespace, callback) {
+		async.eachOf(Object.keys(ymlobj.includes), function(namespace, value, callback) {
 			parse(ymlobj.includes[namespace], function(childymlobj) {
 				
 				toFullnameImport(childymlobj, namespace);
@@ -211,14 +211,16 @@ function parse(pathtoyml, cb, currentPath) {
 				callback();
 			}, currentPath);
 		}, function(err) {
+			if (ymlobj.services == null) ymlobj.services = {};
+			
 			delete ymlobj.includes;
 
 			if (ymlobj.joins) _.map(ymlobj.joins, function(join) {
 				
 			});
-
 			_.map(allServices, function(serviceMap) {
 				_.map(Object.keys(serviceMap), function(servicename) {
+			
 					ymlobj.services[servicename] = serviceMap[servicename];
 				});
 			});

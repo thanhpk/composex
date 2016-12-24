@@ -4,7 +4,7 @@ var composex = require('../index.js');
 var yml = require('yamljs');
 var path = require('path');
 
-describle('Import & Export', function() {
+describe('Import & Export', function() {
 	describe('import export', function() {
 		it('should replace the host_env with name in import list', function(done) {
 			composex.parse(__dirname + '/importexport/importer.yml', function(obj) {
@@ -23,7 +23,7 @@ describle('Import & Export', function() {
 		});
 	});
 
-	describle('join', function() {
+	describe('join', function() {
 		it('should replace the env', function (done) {
 			composex.parse(__dirname + '/join/join.yml', function(obj) {
 				assert.notEqual(obj.services.A.webserver.environment.join('\n').indexOf('DBHOST=B.mysql'), -1);
