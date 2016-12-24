@@ -1,5 +1,5 @@
-links:
-  - I: importer.yml
+includes:
+  I: importer.yml
 
 imports:
   - db=I.mydb
