@@ -28,6 +28,7 @@ describle('Import & Export', function() {
 			composex.parse(__dirname + '/join/join.yml', function(obj) {
 				assert.notEqual(obj.services.A.webserver.environment.join('\n').indexOf('DBHOST=B.mysql'), -1);
 				assert.notEqual(obj.services.A.webserver.environment.join('\n').indexOf('DBPORT=3306'), -1);				
+				done();
 			});
 		});
 	});

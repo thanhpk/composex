@@ -1,4 +1,3 @@
-
 includes:
   E: exporter.yml
 
@@ -6,9 +5,12 @@ imports:
   - db=E.datastore
 
 exports:
-  - mydb=db.host:db.port
+  - mydb=myowndb:1235
+
 services:
   webserver:
     host_env:
       - DATABASE_HOST=db.host
       - DATABASE_PORT=db.port
+  myowndb:
+    image: postgres:5
