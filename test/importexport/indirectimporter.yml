@@ -1,0 +1,11 @@
+links:
+  - I: importer.yml
+
+imports:
+  - db=I.mydb
+
+services:
+  webserver:
+    host_env:
+      - DATABASE_HOST=db.host
+      - DATABASE_PORT=db.port

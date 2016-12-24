@@ -1,6 +1,6 @@
 var assert = require('assert');
 var composex = require('../index.js');
-var yrml = require('yamljs');
+var yml = require('yamljs');
 var path = require('path');
 
 describe('Swarm', function() {

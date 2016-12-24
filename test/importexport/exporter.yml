@@ -1,0 +1,5 @@
+exports:
+  - datastore=mysql:3309
+services:
+  mysql:
+    image: mysql:5.6
