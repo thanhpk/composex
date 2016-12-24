@@ -37,6 +37,45 @@ function toFullname(ymlobj, prop, namespace) {
 	ymlobj[prop] = newprop;	
 }
 
+function toFullnameImport(ymlobj, namespace) {
+	if (ymlobj.imports == undefined) {
+		return;
+	}
+	var new_imports = [];
+	_.map(ymlobj.imports, function(imp) {
+		var importSplit = imp.split('=');
+		if (importSplit.length != 2) throw "import must be A=B";
+		new_imports.push(`${namespace}.${importSplit[0]}=${namespace}.${importSplit[1]}`);
+	});
+	ymlobj.imports = new_imports;
+}
+
+function toFullnameExport(ymlobj, namespace) {
+	if (ymlobj.exports == undefined) {
+		return;
+	}
+	var new_exports = [];
+	_.map(ymlobj.exports, function(imp) {
+		var exportSplit = imp.split('=');
+		if (exportSplit.length != 2) throw "export must be A=B";
+		new_exports.push(`${namespace}.${exportSplit[0]}=${namespace}.${exportSplit[1]}`);
+	});
+	ymlobj.exports = new_exports;
+}
+
+function toFullnameJoin(ymlobj, namespace) {
+	if (ymlobj.joins == undefined) {
+		return;
+	}
+	var new_joins = [];
+	_.map(ymlobj.joins, function(join) {
+		var joinSplit = join.split('=');
+		if (joinSplit.length != 2) throw "join must be A=B";
+		new_joins.push(`${namespace}.${joinSplit[0]}=${namespace}.${joinSplit[1]}`);
+	});
+	ymlobj.exports = new_joins;
+}
+
 function toFullnameEnv(ymlobj, namespace) {
 	if (ymlobj.host_env == undefined) {
 		return;
@@ -47,6 +86,35 @@ function toFullnameEnv(ymlobj, namespace) {
 		newenvs.push(`${hostenvsplit[0]}=${namespace}.${hostenvsplit[1]}`);
 	});
 	ymlobj.host_env = newenvs;
+}
+
+function mergeImportExport(parent, namespace, child) {
+	parent.imports = parent.imports || [];
+	var childImportMap = {};
+	// build map and add namespace
+	_.map(child.imports, function (imp) {
+		var importSplit = imp.split('=');
+		if (importSplit.length != 2) throw "import must be A=B";
+		childImportMap[`${namespace}.${importSplit[0]}`]=`${namespace}.${importSplit[1]}`;
+	});
+
+	//rebuild array
+	_.map(Object.keys(childImportMap), function(key) {
+		parent.imports.push(`${key}=${childImportMap[key]}`);
+	});
+
+	var childExportMap = {};
+	// build map and add namespace
+	_.map(child.exports, function (imp) {
+		var exportSplit = imp.split('=');
+		if (exportSplit.length != 2) throw "export must be A=B";
+		childExportMap[`${namespace}.${exportSplit[0].trim()}`]=`${namespace}.${exportSplit[1].trim()}`;
+	});
+
+	//rebuild array
+	_.map(Object.keys(childExportMap), function(key) {
+		parent.exports.push(`${key}=${childExportMap[key]}`);
+	});
 }
 
 function parse(pathtoyml, cb, currentPath) {
@@ -73,7 +141,21 @@ function parse(pathtoyml, cb, currentPath) {
 
 	function parseYml(content, cb) {
 		var ymlobj = yaml.parse(content);
+		ymlobj.parsedExports = {};
+		if (ymlobj.exports != undefined) _.map(ymlobj.exports, function(exp) {
+			var exportSplit = exp.split('=');
+			var serviceSplit = (exportSplit[1] || exportSplit[0]).split(":");
+			
+			var servicename = serviceSplit[0];
+			var serviceport = serviceSplit[1];
 
+			if (serviceport == null) throw "missing service port\n " + content;
+			
+			var name = exportSplit[1] == undefined ? servicename : exportSplit[0];
+			ymlobj.parsedExports[name] = {host: servicename, port: serviceport};
+
+		});
+		
 		if (ymlobj.services != undefined) _.map(Object.keys(ymlobj.services), function(servicename) {
 			if (!ymlobj.services[servicename].build) return;
 			if (typeof ymlobj.services[servicename].build === "string") {
@@ -89,35 +171,58 @@ function parse(pathtoyml, cb, currentPath) {
 		}
 
 		var namespaceMap = ymlobj.includes;
-		
-		async.filter(Object.keys(ymlobj.includes), function(namespace, callback) {
+
+		var allServices = [];
+		async.eachOf(Object.keys(ymlobj.includes), function(namespace, callback) {
 			parse(ymlobj.includes[namespace], function(childymlobj) {
+				
+				toFullnameImport(childymlobj, namespace);
+				toFullnameExport(childymlobj, namespace);
+				toFullnameJoin(childymlobj, namespace);
+
 				var childServices = childymlobj.services;
 				var services = {};
 				if (ymlobj.services != undefined) _.map(Object.keys(ymlobj.services), function(servicename) {
 					services[servicename] = ymlobj.services[servicename];
 				});
 
+				mergeImportExport(ymlobj, namespace, childymlobj);
+
 				if (childServices == undefined) {
-					callback(services);
+					allServices.push(services);
+					callback();
 					return;
 				}
+
 				_.map(Object.keys(childServices), function(servicename) {
-					toFullname(childServices[servicename], 'links', namespace);
-					toFullnameEnv(childServices[servicename], namespace);
-					if (services[`${namespace}.${servicename}`] != undefined) {
-						merge(childServices[servicename], services[`${namespace}.${servicename}`]);
-						mergePort(childServices[servicename], services[`${namespace}.${servicename}`]);
-						override(childServices[servicename], services[`${namespace}.${servicename}`]);
-						mergeEnvHost(childServices[servicename],  services[`${namespace}.${servicename}`]);
+					var cService = childServices[servicename];
+					toFullname(cService, 'links', namespace);
+					toFullnameEnv(cService, namespace);
+					var service = services[`${namespace}.${servicename}`];
+					if ( service != undefined) {
+						merge(cService, service);
+						mergePort(cService, service);
+						override(cService, service);
+						mergeEnvHost(cService, service);
 					}
-					services[`${namespace}.${servicename}`] = childServices[servicename];
+					services[`${namespace}.${servicename}`] = cService;
 				});
-				callback(services);
+				allServices.push(services);
+				callback();
 			}, currentPath);
-		}, function(servicesArr) {
+		}, function(err) {
 			delete ymlobj.includes;
-			ymlobj.services = servicesArr;
+
+			if (ymlobj.joins) _.map(ymlobj.joins, function(join) {
+				
+			});
+
+			_.map(allServices, function(serviceMap) {
+				_.map(Object.keys(serviceMap), function(servicename) {
+					ymlobj.services[servicename] = serviceMap[servicename];
+				});
+			});
+			
 			cb(ymlobj);
 		});
 	}
@@ -163,17 +268,16 @@ function mergeEnvHost(dst, src) {
 	var dstmap = {};
 	_.map(dst.host_env, function(item) {
 		var	itemsplit = item.split('=');
-		dstmap[itemsplit[0]] = itemsplit[1] || itemsplit[0];
+		if (itemsplit[1] == null) throw "wrong host_env syntax";
+		dstmap[itemsplit[0]] = itemsplit[1];
 	});
 		
 	_.map(src.host_env, function(item) {
 		var itemsplit =  item.split('=');
 		dstmap[itemsplit[0]] = itemsplit[1] || itemsplit[0];
+		if (itemsplit[1] == null) throw "wrong host_env syntax";
 	});
 
-	if (dst.environment == undefined) {
-		dst.environment = [];
-	}
 	var new_hostenv = [];
 	_.map(Object.keys(dstmap), function(itemname) {
 		new_hostenv.push(`${itemname}=${dstmap[itemname]}`);
