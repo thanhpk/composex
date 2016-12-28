@@ -1,0 +1,9 @@
+name: apiaccount
+version: 0.0.2
+
+exports:
+  api: "mongo:27017"
+  
+containers:
+  mongo:
+    image: mongo:3.4

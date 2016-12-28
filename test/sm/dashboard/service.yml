@@ -1,0 +1,12 @@
+name: dashboard
+version: 0.0.2
+
+imports:
+  - db
+
+containers:
+  nginx:
+    image: nginx:1.2.5
+    host_env:
+      APIACCOUNTHOST: db.host
+      APIACCOUNTPORT: db.port
