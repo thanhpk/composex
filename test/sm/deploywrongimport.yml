@@ -1,0 +1,5 @@
+version: 2108
+
+services:
+  NotArray:
+    from: ./test/sm/WrongImport.yml

@@ -3,6 +3,35 @@ var sm = require('../sm.js');
 var fs = require('fs');
 
 describe('SM Deploy', function() {
+	describe('yaml bug', function() {
+		it('imports must be array', function(done) {
+			fs.readFile(__dirname + '/sm/deploy_importnotarray.yml', 'utf-8', function(err, data) {
+				sm.parse(data, function(err, ymlobj) {
+					assert.notEqual(err, undefined);
+					done();
+				});
+			});
+		});
+
+		it('imports must not contains "."', function(done) {
+			fs.readFile(__dirname + '/sm/deploycontaindot.yml', 'utf-8', function(err, data) {
+				sm.parse(data, function(err, ymlobj) {
+					assert.notEqual(err, undefined);
+					done();
+				});
+			});
+		});
+
+		it('host_env services should be in imports', function(done) {
+			fs.readFile(__dirname + '/sm/deploywrongimport.yml', 'utf-8', function(err, data) {
+				sm.parse(data, function(err, ymlobj) {
+					assert.notEqual(err, undefined);
+					done();
+				});
+			});
+		});
+	});
+
 	describe('Services', function() {
 		it('should list all containers with correct name', function(done) {
 			fs.readFile(__dirname + '/sm/deploy.yml', 'utf-8', function(err, data) {

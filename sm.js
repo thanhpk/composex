@@ -2,14 +2,49 @@ var yaml = require('yamljs');
 var _ = require('lodash');
 var async = require('async');
 var request = require('request');
+var validUrl = require('valid-url');
+var path = require('path');
+var fs = require('fs');
+
+function getContent(pathtoyml, cb) {
+	if (validUrl.isUri(pathtoyml)) {
+		var auth = "Basic " + new Buffer("thanhpk" + ":" + "123456").toString("base64");
+		request({
+			method: 'GET',
+			url: pathtoyml,
+			headers: {Authorization: auth}
+		}, function(err, response) {
+			if (err) {
+				cb(err);
+				return;
+			}
+			
+			if (response.statusCode !== 200) {
+				cb(response.body);
+				return;
+			}
+
+			cb(null, response.body);
+			return;
+		});
+	}	else {
+		var absolutePath =  path.resolve(pathtoyml);
+		fs.readFile(absolutePath, 'utf8', function(err, data) {
+			if (err) {
+				cb(err);
+				return;
+			}
+			cb(undefined, data);
+		});
+	}
+
+}
 
 exports.parse = function(ymlcontent, callback) {
-	var auth = "Basic " + new Buffer("thanhpk" + ":" + "123456").toString("base64");
 	if (ymlcontent == undefined) {
 		callback("content must not be null");
 		return;
 	}
-	
 	var dep = yaml.parse(ymlcontent);
 
 	if (!dep.services) {
@@ -21,22 +56,13 @@ exports.parse = function(ymlcontent, callback) {
 	var serviceExports = {};
 	async.each(Object.keys(dep.services), function(servicename, cb) {
 		var service = dep.services[servicename];
-		request({
-			method: 'GET',
-			url: service.from,
-			headers: {Authorization: auth}
-		}, function(err, response) {
+		getContent(service.from, function(err, content) {
 			if (err != undefined) {
 				cb(err);
 				return;
 			}
 
-			if (response.statusCode !== 200) {
-				cb(response.body);
-				return;
-			}
-
-			var serviceYml = yaml.parse(response.body);
+			var serviceYml = yaml.parse(content);
 			serviceRef[servicename] = serviceYml;
 			
 			serviceExports[servicename] = serviceYml.exports;
@@ -147,8 +173,13 @@ function checkBindTo() {
 
 function checkHostEnv(service, servicename, containername) {
 	var errs = [];
+	var imports = service.imports;
+	if (imports != undefined && imports.constructor !== Array) {
+		return `service ${servicename} err, import must be an array`;
+	}
+	
 	if (service.containers[containername].host_env == undefined) {
-		return;
+		return undefined;
 	}
 	
 	_.map(Object.keys(service.containers[containername].host_env), function(env) {
@@ -160,7 +191,7 @@ function checkHostEnv(service, servicename, containername) {
 		
 		var envSplit = envvalue.split('.');
 		if (envSplit.length != 2) {
-			errs.push("wrong host_env format at service " + servicename + '.' + containername + "/" + env + "must be ENV=name.port or ENV=name.host");
+			errs.push("wrong host_env format at service " + servicename + '.' + containername + " / " + env + " must be ENV=name.port or ENV=name.host");
 			return;
 		}
 		var importname = envSplit[0];
@@ -175,6 +206,8 @@ function checkHostEnv(service, servicename, containername) {
 		}
 	});
 
-	if (errs.length > 0) return errs.join('\n');
-	return;
-}
+	if (errs.length > 0)
+		return errs.join('\n');
+	else 
+		return undefined;
+} 

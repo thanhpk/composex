@@ -1,0 +1,9 @@
+version: '1.2.3'
+name: 'Not array'
+
+containers:
+  nginx:
+    images: nginx:1.1.4
+imports:
+    a: 1
+    b: 2
