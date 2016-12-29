@@ -6,8 +6,8 @@ describe('SM Deploy', function() {
 	describe('Services', function() {
 		it('should list all containers with correct name', function(done) {
 			fs.readFile(__dirname + '/sm/deploy.yml', 'utf-8', function(err, data) {
-				
-				sm.parse(data, {}, function(ymlobj) {
+				sm.parse(data, function(err, ymlobj) {
+					if (err) assert.fail(err);
 					assert.equal(ymlobj.services['dashboard.nginx'].image, 'nginx:1.2.5');
 					done();
 				});
@@ -16,7 +16,8 @@ describe('SM Deploy', function() {
 		
 		it('should replace service env variable with correct service name', function(done) {
 			fs.readFile(__dirname + '/sm/deploy.yml', 'utf-8', function(err, data) {
-				sm.parse(data, {}, function(ymlobj) {
+				sm.parse(data, function(err, ymlobj) {
+					if (err) assert.fail(err);
 					assert.equal(ymlobj.services['dashboard.nginx'].host_env.APIACCOUNTHOST, 'apiaccount.mongo');
 					done();
 				});
