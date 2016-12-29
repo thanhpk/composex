@@ -4,15 +4,21 @@ var async = require('async');
 var request = require('request');
 
 exports.parse = function(ymlcontent, auth, callback) {
+	if (ymlcontent == undefined) {
+		callback("content must not be null");
+		return;
+	}
+	
 	var dep = yaml.parse(ymlcontent);
 
 	if (!dep.services) {
-		callback({});
+		callback(null, {});
 		return;
 	}
 	var services = {};
 	var serviceRef = {};
-	async.each(Object.key(dep.services), function(servicename, cb) {
+	var serviceExports = {};
+	async.each(Object.keys(dep.services), function(servicename, cb) {
 		var service = dep.services[servicename];
 		request(service.from, function(err, response) {
 			if (err != undefined) {
@@ -52,60 +58,83 @@ exports.parse = function(ymlcontent, auth, callback) {
 			callback(err);
 			return;
 		}
+		mapHostEnv(dep, serviceRef, serviceExports, services, function(err) {
+			if (err) {
+				callback(err);
+				return;
+			}
 
-		_.map(Object.keys(dep.services), function(servicename) {
-			var binds = dep.services[servicename].binds;
-
-			if (binds == undefined) return;
-			var errs = [];
-			_.map(Object.keys(binds), function(bindto) {
-				var bindfrom = binds[bindto];
-
-				err = checkBindTo(serviceExports, bindto);
-				if (err) {
-					errs.push(err);
-					return;
-				}
-
-				var bindtoSplit = bindto.split('.');
-				var bindtoservicename = bindtoSplit[0];
-				var bindtoexport = bindtoSplit[1];
-				
-				if (serviceRef[bindtoservicename] == undefined) {
-					callback(`bind err: service reference not found at ${servicename}: ${bindtoservicename}`);
-					return;
-				}
-				if (serviceRef[bindtoservicename].exports == undefined) {
-					callback(`bind err: service not export any containers (${servicename}: ${bindtoservicename})`);
-					return;
-				}
-
-				var exp = serviceRef[bindtoservicename].exports[bindtoexport];
-				if (exp == undefined) {
-					callback(`bind err: reference to export not found (${servicename}: ${bindtoservicename})`);
-					return; 
-				}
-
-				var expSplit = exp.split(':');
-				var expContainer = expSplit[0];
-				var expPort = expSplit[1];
-				
-				_.map(Object.keys(serviceRef[servicename].containers), function(containername) {
-					_.map(Object.keys(serviceRef[servicename].containers[containername].host_env), function(env) {
-						if (services[servicename + '.' + containername].host_env[env].trim() == bindfrom + ".host") {
-							services[servicename + '.' + containername].host_env[env] = bindtoservicename + "." + expContainer;
-						}
-						if (services[servicename + '.' + containername].host_env[env].trim() == bindfrom + ".port") {
-							services[servicename + '.' + containername].host_env[env] = bindtoservicename + "." + expPort;
-						}
-					});
-				});				
-			});
+			callback(null, {services: services});
 		});
 	});
-});
+}
+// dep, map to deployment file (refer to serviceRef)
+// serviceRef, a map to fetched service Key = service name, value = service yml
+// serviceExports, a map to exported endpoint. key = servicename, value = endpoint name string
+// services, a map to all output containers. Key = full container name, value = name
+function mapHostEnv(dep, serviceRef, serviceExports, services, callback) {
+	var errs = [];
+	_.map(Object.keys(dep.services), function(servicename) {
+		var binds = dep.services[servicename].binds;
+		if (binds == undefined) return;
+		_.map(Object.keys(binds), function(bindto) {
+			var bindfrom = binds[bindto];
+			var err = checkBindTo(serviceExports, bindto);
+			if (err) {
+				errs.push(err);
+				return;
+			}
 
+			var bindtoSplit = bindto.split('.');
+			var bindtoservicename = bindtoSplit[0];
+			var bindtoexport = bindtoSplit[1];
+			
+			if (serviceRef[bindtoservicename] == undefined) {
+				errs.push(`bind err: service reference not found at ${servicename}: ${bindtoservicename}`);
+				return;
+			}
+			if (serviceRef[bindtoservicename].exports == undefined) {
+				errs.push(`bind err: service not export any containers (${servicename}: ${bindtoservicename})`);
+				return;
+			}
 
+			var exp = serviceRef[bindtoservicename].exports[bindtoexport];
+			if (exp == undefined) {
+				errs.push(`bind err: reference to export not found (${servicename}: ${bindtoservicename})`);
+				return; 
+			}
+
+			var expSplit = exp.split(':');
+			var expContainer = expSplit[0];
+			var expPort = expSplit[1];
+			
+			_.map(Object.keys(serviceRef[servicename].containers), function(containername) {
+				_.map(Object.keys(serviceRef[servicename].containers[containername].host_env), function(env) {
+					if (services[servicename + '.' + containername].host_env[env].trim() == bindfrom + ".host") {
+						services[servicename + '.' + containername].host_env[env] = bindtoservicename + "." + expContainer;
+					}
+					if (services[servicename + '.' + containername].host_env[env].trim() == bindfrom + ".port") {
+						services[servicename + '.' + containername].host_env[env] = bindtoservicename + "." + expPort;
+					}
+				});
+			});		
+		});
+	});
+	
+	if (errs.length != 0) {
+		callback(errs.join('\n'));
+		return;
+	}
+	callback();
+}
+
+function checkExports() {
+	return;
+}
+
+function checkBindTo() {
+	return;
+}
 
 function checkHostEnv(service, servicename, containername, cb) {
 	_.map(Object.keys(service[containername].host_env), function(env) {
