@@ -1,4 +1,4 @@
-var yaml = require('yamljs');
+pvar yaml = require('yamljs');
 var request = require('request');
 var fs = require('fs');
 var validUrl = require('valid-url');
@@ -7,7 +7,18 @@ var _ = require('lodash');
 var path = require('path');
 var swarm = require('./swarm.js');
 
-exports.parse = parse;
+exports.toSwarmScript = function(content, scope, storagePrefix, cb) {
+	swarm.parseYml(content, scope, storagePrefix, function(script) {
+		console.log(script);
+		cb(null, script);
+	});
+};
+
+exports.parse = function(pathtoyml, callback) {
+	parse(pathtoyml, function(yml) {
+		callback(yml);
+	});
+};
 exports.merge = function(pathtoyml, cb) {
 	parse(pathtoyml, function() {
 	});
@@ -88,7 +99,7 @@ function toFullnameEnv(ymlobj, namespace) {
 	ymlobj.host_env = newenvs;
 }
 
-function mergeImportExport(parent, namespace, child) {
+function mergeImportExportJoin(parent, namespace, child) {
 	parent.imports = parent.imports || [];
 	var childImportMap = {};
 	// build map and add namespace
@@ -99,22 +110,46 @@ function mergeImportExport(parent, namespace, child) {
 	});
 
 	//rebuild array
+	parent.imports = parent.imports || [];
 	_.map(Object.keys(childImportMap), function(key) {
 		parent.imports.push(`${key}=${childImportMap[key]}`);
 	});
 
 	var childExportMap = {};
 	// build map and add namespace
-	_.map(child.exports, function (imp) {
-		var exportSplit = imp.split('=');
+	_.map(child.exports, function (exp) {
+		var exportSplit = exp.split('=');
 		if (exportSplit.length != 2) throw "export must be A=B";
+		
 		childExportMap[`${namespace}.${exportSplit[0].trim()}`]=`${namespace}.${exportSplit[1].trim()}`;
 	});
 
 	//rebuild array
+	parent.exports = parent.exports || [];
 	_.map(Object.keys(childExportMap), function(key) {
 		parent.exports.push(`${key}=${childExportMap[key]}`);
 	});
+
+	var childJoinMap = {};
+	// build map and add namespace
+	_.map(child.joins, function (join) {
+		var joinSplit = join.split('=');
+		if (joinSplit.length != 2) throw "join must be A=B";
+		childJoinMap[`${namespace}.${joinSplit[0].trim()}`]=`${namespace}.${joinSplit[1].trim()}`;
+	});
+
+	//rebuild array
+	parent.joins = parent.joins || [];
+	_.map(Object.keys(childJoinMap), function(key) {
+		var found =false;
+		_.map(parent.joins, function(join) {
+			var name = join.split('=')[0].trim();
+			if (name == key) found = true;
+		});
+
+		if (found) return;
+		else parent.joins.push(`${key}=${childJoinMap[key]}`);
+	});	
 }
 
 function parse(pathtoyml, cb, currentPath) {
@@ -176,9 +211,9 @@ function parse(pathtoyml, cb, currentPath) {
 		async.eachOf(Object.keys(ymlobj.includes), function(namespace, value, callback) {
 			parse(ymlobj.includes[namespace], function(childymlobj) {
 				
-				toFullnameImport(childymlobj, namespace);
-				toFullnameExport(childymlobj, namespace);
-				toFullnameJoin(childymlobj, namespace);
+		//		toFullnameImport(childymlobj, namespace);
+			//	toFullnameExport(childymlobj, namespace);
+			//	toFullnameJoin(childymlobj, namespace);
 
 				var childServices = childymlobj.services;
 				var services = {};
@@ -186,7 +221,7 @@ function parse(pathtoyml, cb, currentPath) {
 					services[servicename] = ymlobj.services[servicename];
 				});
 
-				mergeImportExport(ymlobj, namespace, childymlobj);
+				mergeImportExportJoin(ymlobj, namespace, childymlobj);
 
 				if (childServices == undefined) {
 					allServices.push(services);
