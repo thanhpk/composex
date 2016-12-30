@@ -25,8 +25,7 @@ exports.parse = function(pathtoyml, scope, dfspath, callback, currentPath) {
 };
 
 exports.parseYml = function parseYml(content, scope, dfspath, callback) {
-	var net = yaml.parse(content);
-
+	var net = typeof content == "string" ? yaml.parse(content) : content;
 	if (!net.services) {
 		callback("");
 		return;
@@ -36,14 +35,17 @@ exports.parseYml = function parseYml(content, scope, dfspath, callback) {
 	_.map(Object.keys(net.services), function(servicename) {
 		var service = net.services[servicename];
 		var createscript = "docker service create ";
-		createscript += ` --name ${scope}.${servicename}`;
+		createscript += ` --name ${scope}_${servicename}`;
 		
-		if (net.services[servicename] != undefined)	createscript += parseEnv(net.services[servicename].environment);
-		if (net.services[servicename] != undefined)	createscript += parseExpose(net.services[servicename].expose);
-		if (net.services[servicename] != undefined)	createscript += parseVolume(net.services[servicename].volumes, scope, dfspath, servicename);
-		script += ` --network ${scope}_overlay_ds`;
+		if (net.services[servicename] != undefined)	{
+			createscript += parseEnv(net.services[servicename].environment);
+			createscript += parseExpose(net.services[servicename].expose);
+			createscript += parseVolume(net.services[servicename].volumes, scope, dfspath, servicename);
+		}
+		
+		createscript += ` --network ${scope}_overlay_ds`;
 		var img = (net.services[servicename] || {image: 'alpine'})['image'];
-		var cmd = (net.services[servicename] || {command: ''})['command'];
+		var cmd = (net.services[servicename] || {command: ''})['command'] || '';
 		script += createscript + ' ' + img + ' ' + cmd + "\n";
 	});
 	callback(script);
