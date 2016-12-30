@@ -40,7 +40,7 @@ function getContent(pathtoyml, cb) {
 
 }
 
-exports.parse = function(ymlcontent, callback) {
+exports.parse = function(ymlcontent, callback, scope) {
 	if (ymlcontent == undefined) {
 		callback("content must not be null");
 		return;
@@ -94,7 +94,7 @@ exports.parse = function(ymlcontent, callback) {
 			callback(err);
 			return;
 		}
-		mapHostEnv(dep, serviceRef, serviceExports, services, function(err) {
+		mapHostEnv(scope, dep, serviceRef, serviceExports, services, function(err) {
 			if (err) {
 				callback(err);
 				return;
@@ -102,12 +102,13 @@ exports.parse = function(ymlcontent, callback) {
 			callback(null, {services: services});
 		});
 	});
-}
+};
+
 // dep, map to deployment file (refer to serviceRef)
 // serviceRef, a map to fetched service Key = service name, value = service yml
 // serviceExports, a map to exported endpoint. key = servicename, value = endpoint name string
 // services, a map to all output containers. Key = full container name, value = name
-function mapHostEnv(dep, serviceRef, serviceExports, services, callback) {
+function mapHostEnv(scope, dep, serviceRef, serviceExports, services, callback) {
 	var errs = [];
 	_.map(Object.keys(dep.services), function(servicename) {
 		var binds = dep.services[servicename].binds;
@@ -139,17 +140,19 @@ function mapHostEnv(dep, serviceRef, serviceExports, services, callback) {
 				errs.push(`bind err: reference to export not found (${servicename}: ${bindfromservicename})`);
 				return; 
 			}
-
 			var expSplit = exp.split(':');
 			var expContainer = expSplit[0];
 			var expPort = expSplit[1];			
 			_.map(Object.keys(serviceRef[servicename].containers), function(containername) {
+				if (serviceRef[servicename].containers[containername].host_env == undefined) {
+					return;
+				}
 				_.map(Object.keys(serviceRef[servicename].containers[containername].host_env), function(env) {
 					if (services[servicename + '.' + containername].host_env[env].trim() == bindto + ".host") {
-						services[servicename + '.' + containername].host_env[env] = bindfromservicename + "." + expContainer;
+						services[servicename + '.' + containername].host_env[env] = scope + "_" + bindfromservicename + "." + expContainer;
 					}
 					if (services[servicename + '.' + containername].host_env[env].trim() == bindto + ".port") {
-						services[servicename + '.' + containername].host_env[env] = bindfromservicename + "." + expPort;
+						services[servicename + '.' + containername].host_env[env] = expPort;
 					}
 				});
 			});		
