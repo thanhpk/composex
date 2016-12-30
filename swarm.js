@@ -8,8 +8,7 @@ var _ = require('lodash');
 var path = require('path');
 
 exports.parse = function(pathtoyml, scope, dfspath, callback, currentPath) {
-
-		if (validUrl.isUri(pathtoyml)) {
+	if (validUrl.isUri(pathtoyml)) {
 		request(pathtoyml, function(err, response, body) {
 			parseYml(body, scope, dfspath, callback);
 		});
@@ -25,7 +24,7 @@ exports.parse = function(pathtoyml, scope, dfspath, callback, currentPath) {
 	}
 };
 
-function parseYml(content, scope, dfspath, callback) {
+exports.parseYml = function parseYml(content, scope, dfspath, callback) {
 	var net = yaml.parse(content);
 
 	if (!net.services) {
@@ -48,7 +47,7 @@ function parseYml(content, scope, dfspath, callback) {
 		script += createscript + ' ' + img + ' ' + cmd + "\n";
 	});
 	callback(script);
-}
+};
 
 function parseVolume(volumeyml, scope, dfspath, servicename) {
 	if (!volumeyml) return "";
