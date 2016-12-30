@@ -37,7 +37,6 @@ function getContent(pathtoyml, cb) {
 			cb(undefined, data);
 		});
 	}
-
 }
 
 exports.parse = function(ymlcontent, callback, scope) {
@@ -75,7 +74,7 @@ exports.parse = function(ymlcontent, callback, scope) {
 			if (serviceYml.containers != undefined)
 				_.map(Object.keys(serviceYml.containers), function(containername) {
 					var container = serviceYml.containers[containername];
-					services[servicename + '.' + containername] = container;
+					services[servicename + '_' + containername] = container;
 					var err = checkHostEnv(serviceYml, servicename, containername);
 					if (err) {
 						errs.push(err);
@@ -125,7 +124,6 @@ function mapHostEnv(scope, dep, serviceRef, serviceExports, services, callback) 
 			var bindfromservicename = bindfromSplit[0];
 			var bindfromexport = bindfromSplit[1];
 
-			
 			if (serviceRef[bindfromservicename] == undefined) {
 				errs.push(`bind err: service reference not found at ${servicename}: ${bindfromservicename}`);
 				return;
@@ -148,11 +146,11 @@ function mapHostEnv(scope, dep, serviceRef, serviceExports, services, callback) 
 					return;
 				}
 				_.map(Object.keys(serviceRef[servicename].containers[containername].host_env), function(env) {
-					if (services[servicename + '.' + containername].host_env[env].trim() == bindto + ".host") {
-						services[servicename + '.' + containername].host_env[env] = scope + "_" + bindfromservicename + "." + expContainer;
+					if (services[servicename + '_' + containername].host_env[env].trim() == bindto + ".host") {
+						services[servicename + '_' + containername].host_env[env] = scope + "_" + bindfromservicename + "_" + expContainer;
 					}
-					if (services[servicename + '.' + containername].host_env[env].trim() == bindto + ".port") {
-						services[servicename + '.' + containername].host_env[env] = expPort;
+					if (services[servicename + '_' + containername].host_env[env].trim() == bindto + ".port") {
+						services[servicename + '_' + containername].host_env[env] = expPort;
 					}
 				});
 			});		
