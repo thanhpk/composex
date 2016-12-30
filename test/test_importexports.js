@@ -15,7 +15,7 @@ describe('Import & Export', function() {
 		});
 
 		it('should have correct name when being linked', function(done) {
-			composex.parse(__dirname + '/importexport/indirectimport.yml', function(obj) {
+			composex.parse(__dirname + '/importexport/indirectimporter.yml', function(obj) {
 				assert.notEqual(obj.services.webserver.environment.join('\n').indexOf('DATABASE_HOST=I.E.mysql'), -1);
 				assert.notEqual(obj.services.webserver.environment.join('\n').indexOf('DATABASE_PORT=3309'), -1);
 				done();
@@ -26,8 +26,9 @@ describe('Import & Export', function() {
 	describe('join', function() {
 		it('should replace the env', function (done) {
 			composex.parse(__dirname + '/join/join.yml', function(obj) {
-				assert.notEqual(obj.services.A.webserver.environment.join('\n').indexOf('DBHOST=B.mysql'), -1);
-				assert.notEqual(obj.services.A.webserver.environment.join('\n').indexOf('DBPORT=3306'), -1);				
+				console.log(obj);
+				assert.notEqual(obj.services['A.webserver'].environment.join('\n').indexOf('DBHOST=B.mysql'), -1);
+				assert.notEqual(obj.services['A.webserver'].environment.join('\n').indexOf('DBPORT=3306'), -1);				
 				done();
 			});
 		});

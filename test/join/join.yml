@@ -1,7 +1,7 @@
 
 includes:
-  A: A.yml
-  B: B.yml
+  A: a.yml
+  B: b.yml
 
 joins:
   - "A.database=B.db"
