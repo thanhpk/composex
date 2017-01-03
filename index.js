@@ -8,8 +8,8 @@ var path = require('path');
 var swarm = require('./swarm.js');
 var sm = require('./sm.js');
 
-exports.toSwarmScript = function(content, scope, storagePrefix, cb) {
-	swarm.parseYml(content, scope, storagePrefix, function(script) {
+exports.toSwarmScript = function(nodeid, content, scope, storagePrefix, cb) {
+	swarm.parseYml(nodeid, content, scope, storagePrefix, function(script) {
 		cb(null, script);
 	});
 };
@@ -177,7 +177,7 @@ function parse(pathtoyml, cb, currentPath) {
 	}
 };
 
-exports.parseCompose =function parseYml(content, cb) {
+exports.parseCompose = function parseYml(content, cb) {
 	var ymlobj = typeof content === 'string' ? yaml.parse(content) : content;
 	ymlobj.parsedExports = {};
 	if (ymlobj.exports != undefined) _.map(ymlobj.exports, function(exp) {

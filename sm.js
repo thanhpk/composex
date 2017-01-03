@@ -74,6 +74,7 @@ exports.parse = function(ymlcontent, callback, scope) {
 			if (serviceYml.containers != undefined)
 				_.map(Object.keys(serviceYml.containers), function(containername) {
 					var container = serviceYml.containers[containername];
+					container.local = service.local;
 					services[servicename + '_' + containername] = container;
 					var err = checkHostEnv(serviceYml, servicename, containername);
 					if (err) {
