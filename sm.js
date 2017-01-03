@@ -39,6 +39,24 @@ function getContent(pathtoyml, cb) {
 	}
 }
 
+function toPublishesMap(publishes) {
+	if (publishes == undefined || publishes.length == 0) return [undefined, {}];
+	var map = {};
+	for (var i in publishes) {
+		var publishSplit = publishes[i].split(":");
+		if (publishSplit.length != 3) {
+			return [`ERR: parse publish error (${publishes[i]}) must be P1:servicename:P2`];
+		}
+
+		var hostPort = publishSplit[0];
+		var servicename = publishSplit[1];
+		var containerPort = publishSplit[2];
+		map[servicename] = map[servicename] || [];
+		map[servicename].push({ hostPort: hostPort, containerPort: containerPort });
+	}
+	return [undefined, map];
+}
+
 exports.parse = function(ymlcontent, callback, scope) {
 	if (ymlcontent == undefined) {
 		callback("content must not be null");
@@ -53,6 +71,13 @@ exports.parse = function(ymlcontent, callback, scope) {
 	var services = {};
 	var serviceRef = {};
 	var serviceExports = {};
+	var errP = toPublishesMap(dep.publishes);
+	if (errP[0]) {
+		callback(errP[0]);
+		return;
+	}
+	var publishesMap = errP[1];
+	
 	async.each(Object.keys(dep.services), function(servicename, cb) {
 		var service = dep.services[servicename];
 		getContent(service.from, function(err, content) {
@@ -75,6 +100,15 @@ exports.parse = function(ymlcontent, callback, scope) {
 				_.map(Object.keys(serviceYml.containers), function(containername) {
 					var container = serviceYml.containers[containername];
 					container.local = service.local;
+
+					var publishs = publishesMap[servicename + '.' + containername]; 
+					if (publishs != undefined) {
+						container.expose = container.expose || [];
+						_.map(publishs, function(publish) {
+							container.expose.push(`${publish.hostPort}:${publish.containerPort}`);
+						});
+					}
+					
 					services[servicename + '_' + containername] = container;
 					var err = checkHostEnv(serviceYml, servicename, containername);
 					if (err) {

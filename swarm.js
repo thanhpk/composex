@@ -7,10 +7,10 @@ var async = require('async');
 var _ = require('lodash');
 var path = require('path');
 
-exports.parse = function(pathtoyml, scope, dfspath, callback, currentPath) {
+exports.parse = function(nodeid, pathtoyml, scope, dfspath, callback, currentPath) {
 	if (validUrl.isUri(pathtoyml)) {
 		request(pathtoyml, function(err, response, body) {
-			parseYml(body, scope, dfspath, callback);
+			parseYml(nodeid, body, scope, dfspath, callback);
 		});
 	}
 	else {
@@ -19,12 +19,12 @@ exports.parse = function(pathtoyml, scope, dfspath, callback, currentPath) {
 		fs.readFile(absolutePath, 'utf8', function(err, data) {
 			if (err) throw err;
 			currentPath = path.dirname(absolutePath);
-			parseYml(data, scope, dfspath, callback);
+			parseYml(nodeid, data, scope, dfspath, callback);
 		});
 	}
 };
 
-exports.parseYml = function parseYml(content, scope, dfspath, callback) {
+exports.parseYml = function parseYml(nodeid, content, scope, dfspath, callback) {
 	var net = typeof content == "string" ? yaml.parse(content) : content;
 	if (!net.services) {
 		callback("");
@@ -36,14 +36,23 @@ exports.parseYml = function parseYml(content, scope, dfspath, callback) {
 		var service = net.services[servicename];
 		var createscript = "docker service create ";
 		createscript += ` --name ${scope}_${servicename}`;
+
+		if (service.local) {
+			createscript += ` --constraint 'node.id == ${nodeid}'`;
+		}
+		else {
+			createscript += ` --constraint 'node.labels.remotedev == remotedev'`;
+		}
+
 		
 		if (net.services[servicename] != undefined)	{
-			createscript += parseEnv(net.services[servicename].environment);
-			createscript += parseExpose(net.services[servicename].expose);
-			createscript += parseVolume(net.services[servicename].volumes, scope, dfspath, servicename);
+			createscript += parseEnv(service.environment);
+			createscript += parseExpose(service.expose);
+			createscript += parseVolume(service.volumes, scope, dfspath, servicename);
 		}
 		
 		createscript += ` --network ${scope}_overlay_ds`;
+		
 		var img = (net.services[servicename] || {image: 'alpine'})['image'];
 		var cmd = (net.services[servicename] || {command: ''})['command'] || '';
 		script += createscript + ' ' + img + ' ' + cmd + "\n";
@@ -58,7 +67,7 @@ function parseVolume(volumeyml, scope, dfspath, servicename) {
 	_.map(volumeyml, function(v) {
 		var splitV = v.split(':');
 		v = splitV[1] || splitV[0];		
-		volume += ` --mount type=bind,source=${dfspath}/${scope}/${servicename}${v},destination=${v}`;
+		volume += ` --mount type=bind,source=${splitV[0]},destination=${v}`;
 	});
 
 	return volume;
