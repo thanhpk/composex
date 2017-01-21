@@ -40,7 +40,30 @@ describe('SM Deploy', function() {
 					assert.equal(ymlobj.services['dashboard.nginx'].image, 'nginx:1.2.5');
 					done();
 				});
-			});			
+			});
+		});
+
+		it('should mount the volume', function(done) {
+			fs.readFile(__dirname + '/sm/deploy.yml', 'utf-8', function(err, data) {
+				sm.parse(data, function(err, ymlobj) {
+					if (err) assert.fail(err);
+					var volumes = ymlobj.services['apiaccount.mongo'].volumes;
+					for (var i in volumes) {
+						var volume = volumes[i];
+						var voumeSplit = volume.split(':');
+						var hostPath = volumeSplit[0];
+						var containerPath = volumeSplit[1];
+						if (containerPath == '/tmp') {
+							assert.equal(hostPath, '/tmp/y');
+						}
+
+						if (containerPath == '/var/db') {
+							assert.equal(hostPath, '/tmp/x/data2');
+						}
+						done();
+					}
+				}, '/tmp/x');
+			});
 		});
 		
 		it('should replace service env variable with correct service name', function(done) {

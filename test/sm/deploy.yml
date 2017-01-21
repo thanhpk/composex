@@ -1,8 +1,10 @@
 version: 1029
 services:
   dashboard:
-    from: "http://localhost:8080/dashboard/0.0.2"
+    from: "http://localhost:8080/dashboard/0.0.3"
     binds:
       db: apiaccount.api
   apiaccount:
     from: "http://localhost:8080/apiaccount/0.0.2"
+    mounts:
+      data1:/tmp/y
