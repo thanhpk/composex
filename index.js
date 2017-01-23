@@ -49,7 +49,7 @@ function toFullname(ymlobj, prop, namespace) {
 
 		newprop.push(newpropitem);
 	}
-	ymlobj[prop] = newprop;	
+	ymlobj[prop] = newprop;
 }
 
 function toFullnameImport(ymlobj, namespace) {
@@ -124,7 +124,6 @@ function mergeImportExportJoin(parent, namespace, child) {
 	_.map(child.exports, function (exp) {
 		var exportSplit = exp.split('=');
 		if (exportSplit.length != 2) throw "export must be A=B";
-		
 		childExportMap[`${namespace}.${exportSplit[0].trim()}`]=`${namespace}.${exportSplit[1].trim()}`;
 	});
 
@@ -153,7 +152,7 @@ function mergeImportExportJoin(parent, namespace, child) {
 
 		if (found) return;
 		else parent.joins.push(`${key}=${childJoinMap[key]}`);
-	});	
+	});
 }
 
 function parse(pathtoyml, cb, currentPath) {
@@ -166,7 +165,7 @@ function parse(pathtoyml, cb, currentPath) {
 	}
 	else {
 		var absolutePath = !currentPath ? path.resolve(pathtoyml) : path.resolve(currentPath, pathtoyml);
-		
+
 		fs.readFile(absolutePath, 'utf8', function(err, data) {
 			if (err) throw err;
 			currentPath = path.dirname(absolutePath);
@@ -177,23 +176,23 @@ function parse(pathtoyml, cb, currentPath) {
 	}
 };
 
-exports.parseCompose = function parseYml(content, cb) {
+var parseYml = exports.parseCompose = function (content, cb, currentPath) {
 	var ymlobj = typeof content === 'string' ? yaml.parse(content) : content;
 	ymlobj.parsedExports = {};
 	if (ymlobj.exports != undefined) _.map(ymlobj.exports, function(exp) {
 		var exportSplit = exp.split('=');
 		var serviceSplit = (exportSplit[1] || exportSplit[0]).split(":");
-		
+
 		var servicename = serviceSplit[0];
 		var serviceport = serviceSplit[1];
 
 		if (serviceport == null) throw "missing service port\n " + content;
-		
+
 		var name = exportSplit[1] == undefined ? servicename : exportSplit[0];
 		ymlobj.parsedExports[name] = {host: servicename, port: serviceport};
 
 	});
-	
+
 	if (ymlobj.services != undefined) _.map(Object.keys(ymlobj.services), function(servicename) {
 		if (!ymlobj.services[servicename].build) return;
 		if (typeof ymlobj.services[servicename].build === "string") {
@@ -214,7 +213,7 @@ exports.parseCompose = function parseYml(content, cb) {
 	var allServices = [];
 	async.eachOf(Object.keys(ymlobj.includes), function(namespace, value, callback) {
 		parse(ymlobj.includes[namespace], function(childymlobj) {
-			
+
 			//		toFullnameImport(childymlobj, namespace);
 			//	toFullnameExport(childymlobj, namespace);
 			//	toFullnameJoin(childymlobj, namespace);
@@ -251,15 +250,15 @@ exports.parseCompose = function parseYml(content, cb) {
 		}, currentPath);
 	}, function(err) {
 		if (ymlobj.services == null) ymlobj.services = {};
-		
+
 		delete ymlobj.includes;
 
 		if (ymlobj.joins) _.map(ymlobj.joins, function(join) {
-			
+
 		});
 		_.map(allServices, function(serviceMap) {
 			_.map(Object.keys(serviceMap), function(servicename) {
-				
+
 				ymlobj.services[servicename] = serviceMap[servicename];
 			});
 		});
@@ -275,17 +274,17 @@ function merge(dst, src) {
 		if (!src[fieldname]) return;
 		var dstmap = {};
 		_.map(dst[fieldname], function(item) {
-			var	itemsplit = item.split(':');
+			var itemsplit = item.split(':');
 			dstmap[itemsplit[1]] = itemsplit[0];
 		});
-		
+
 		_.map(src[fieldname], function(item) {
 			var itemsplit = item.split(':');
 			var name = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
 			var ref = itemsplit[0];
 			dstmap[name] = ref;
 		});
-		
+
 		var newfield = [];
 		_.map(Object.keys(dstmap), function(itemname) {
 			newfield.push(`${dstmap[itemname]}:${itemname}`);
@@ -309,13 +308,13 @@ function convertHostEnvToEnv(services) {
 function mergeEnvHost(dst, src) {
 	var dstmap = {};
 	_.map(dst.host_env, function(item) {
-		var	itemsplit = item.split('=');
+		var itemsplit = item.split('=');
 		if (itemsplit[1] == null) throw "wrong host_env syntax";
 		dstmap[itemsplit[0]] = itemsplit[1];
 	});
-		
+
 	_.map(src.host_env, function(item) {
-		var itemsplit =  item.split('=');
+		var itemsplit =	 item.split('=');
 		dstmap[itemsplit[0]] = itemsplit[1] || itemsplit[0];
 		if (itemsplit[1] == null) throw "wrong host_env syntax";
 	});
@@ -331,17 +330,17 @@ function mergePort(dst, src) {
 	_.map(['ports'], function(fieldname) {
 		var dstmap = {};
 		_.map(dst[fieldname], function(item) {
-			var	itemsplit = item.split(':');
+			var itemsplit = item.split(':');
 			dstmap[itemsplit[0]] = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
 		});
-		
+
 		_.map(src[fieldname], function(item) {
-			var itemsplit =  item.split(':');
+			var itemsplit =	 item.split(':');
 			var name = !itemsplit[1] ? itemsplit[0] : itemsplit[1];
 			var ref = itemsplit[0];
 			dstmap[ref] = name;
 		});
-		
+
 		var newfield = [];
 		_.map(Object.keys(dstmap), function(itemname) {
 			newfield.push(`${itemname}:${dstmap[itemname]}`);
@@ -352,14 +351,14 @@ function mergePort(dst, src) {
 }
 
 function arrayUnique(array) {
-  var a = array.concat();
-  for(var i=0; i<a.length; ++i) {
-    for(var j=i+1; j<a.length; ++j) {
-      if(a[i] === a[j])
-        a.splice(j--, 1);
-    }
-  }
-  return a;
+	var a = array.concat();
+	for(var i=0; i<a.length; ++i) {
+		for(var j=i+1; j<a.length; ++j) {
+			if(a[i] === a[j])
+				a.splice(j--, 1);
+		}
+	}
+	return a;
 }
 
 function mergeArray(dst, src) {
@@ -384,11 +383,11 @@ function mergeArray(dst, src) {
 		_.map(Object.keys(dst[fieldname]), function(key) {
 			dstmap[key] = dst[fieldname][key];
 		});
-		
+
 		_.map(src[fieldname], function(key) {
 			dstmap[key] = src[fieldname][key];
 		});
-		
+
 		dst[fieldname] = dstmap;
 	});
 }
