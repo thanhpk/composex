@@ -47,7 +47,6 @@ function toPublishesMap(publishes) {
 		if (publishSplit.length != 3) {
 			return [`ERR: parse publish error (${publishes[i]}) must be P1:servicename:P2`];
 		}
-
 		var hostPort = publishSplit[0];
 		var servicename = publishSplit[1];
 		var containerPort = publishSplit[2];
@@ -57,7 +56,20 @@ function toPublishesMap(publishes) {
 	return [undefined, map];
 }
 
-exports.parse = function(ymlcontent, callback, scope) {
+function buildVolumeMap(mounts) {
+	var volumeMap = {};
+	if (mounts) {
+		_.map(mounts, function(mount) {
+			var mountSplit = mount.split(':');
+			var volumename = mountSplit[0];
+			var hostpath = mount.substr(volumename.length + 1, mount.length);
+			volumeMap[volumename.trim()] = hostpath.trim();
+		});
+	}
+	return volumeMap;
+}
+
+exports.parse = function(ymlcontent, callback, scope, dfspath) {
 	if (ymlcontent == undefined) {
 		callback("content must not be null");
 		return;
@@ -72,29 +84,23 @@ exports.parse = function(ymlcontent, callback, scope) {
 	var serviceRef = {};
 	var serviceExports = {};
 	var errP = toPublishesMap(dep.publishes);
-	if (errP[0]) {
-		callback(errP[0]);
-		return;
-	}
+	if (errP[0]) { callback(errP[0]); return; }
+	
 	var publishesMap = errP[1];
 	
 	async.each(Object.keys(dep.services), function(servicename, cb) {
 		var service = dep.services[servicename];
+		var volumeMap = buildVolumeMap(service.mounts);
 		getContent(service.from, function(err, content) {
-			if (err != undefined) {
-				cb(err);
-				return;
-			}
+			if (err != undefined) {	cb(err); return;}
 
 			var serviceYml = yaml.parse(content);
 			serviceRef[servicename] = serviceYml;
 			
 			serviceExports[servicename] = serviceYml.exports;
 			var exporterr = checkExports(serviceYml);
-			if (exporterr) {
-				cb(exporterr);
-				return;
-			}
+			if (exporterr) { cb(exporterr); return;}
+			
 			var errs = [];
 			if (serviceYml.containers != undefined)
 				_.map(Object.keys(serviceYml.containers), function(containername) {
@@ -115,8 +121,24 @@ exports.parse = function(ymlcontent, callback, scope) {
 						errs.push(err);
 						return;
 					}
-				});
 
+					var mappedVolumes = [];
+					if (container.volumes) {
+						_.map(container.volumes, function(volume) {
+							
+							var volumeSplit = volume.split(':');
+							var volumename = volumeSplit[0];
+							var containerpath = volume.substr(volumename.length + 1, volume.length);
+							if (volumeMap[volumename.trim()] == undefined) {
+								mappedVolumes.push(`${dfspath}/${scope}/${servicename}/${containername}/${volumename}:${containerpath}`); 
+							} else {
+								mappedVolumes.push(`${volumeMap[volumename.trim()]}:${containerpath}`);
+							}
+						});
+						container.volumes = mappedVolumes;
+					}
+				});
+			
 			if (errs.length > 0) {
 				cb(errs.join('\n'));
 				return;

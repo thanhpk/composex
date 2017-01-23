@@ -43,14 +43,14 @@ describe('SM Deploy', function() {
 			});
 		});
 
-		it('should mount the volume', function(done) {
+		it.only('should mount the volume', function(done) {
 			fs.readFile(__dirname + '/sm/deploy.yml', 'utf-8', function(err, data) {
 				sm.parse(data, function(err, ymlobj) {
 					if (err) assert.fail(err);
-					var volumes = ymlobj.services['apiaccount.mongo'].volumes;
+					var volumes = ymlobj.services['apiaccount_mongo'].volumes;
 					for (var i in volumes) {
 						var volume = volumes[i];
-						var voumeSplit = volume.split(':');
+						var volumeSplit = volume.split(':');
 						var hostPath = volumeSplit[0];
 						var containerPath = volumeSplit[1];
 						if (containerPath == '/tmp') {
@@ -58,11 +58,11 @@ describe('SM Deploy', function() {
 						}
 
 						if (containerPath == '/var/db') {
-							assert.equal(hostPath, '/tmp/x/data2');
+							assert.equal(hostPath, '/tmp/x/thanhpk/apiaccount/mongo/data2');
 						}
-						done();
 					}
-				}, '/tmp/x');
+					done();
+				}, 'thanhpk', '/tmp/x');
 			});
 		});
 		

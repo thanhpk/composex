@@ -1,5 +1,5 @@
 name: apiaccount
-version: 0.0.3
+version: 0.0.4
 
 exports:
   api: "mongo:27017"
@@ -8,5 +8,5 @@ containers:
   mongo:
     image: mongo:3.4
     volumes:
-      - data1: /tmp
-      - data2:/var/db
+      - "data1: /tmp"
+      - "data2:/var/db"
