@@ -8,14 +8,14 @@ var path = require('path');
 var swarm = require('./swarm.js');
 var sm = require('./sm.js');
 
-exports.toSwarmScript = function(nodeid, content, scope, storagePrefix, cb) {
-	swarm.parseYml(nodeid, content, scope, storagePrefix, function(script) {
+exports.toSwarmScript = function(nodeid, content, scope, cb) {
+	swarm.parseYml(nodeid, content, scope, function(script) {
 		cb(null, script);
 	});
 };
 
-exports.parseSm = function(scope, content, callback) {
-	sm.parse(content, callback, scope);
+exports.parseSm = function(scope, content, dfspath, callback) {
+	sm.parse(content, callback, scope, dfspath);
 };
 
 exports.parse = function(pathtoyml, callback) {
