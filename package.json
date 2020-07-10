@@ -28,7 +28,7 @@
   "homepage": "https://github.com/thanhpk/composex#readme",
   "dependencies": {
     "async": "^2.1.4",
-    "lodash": "^4.17.2",
+    "lodash": "^4.17.16",
     "request": "^2.79.0",
     "shelljs": "^0.7.5",
     "valid-url": "^1.0.9",
